@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import List
 from dotenv import load_dotenv
 from camel.embeddings import OpenAICompatibleEmbedding
-from camel.storages import BaseVectorStorage, VectorRecord
+from camel.storages import BaseVectorStorage, VectorRecord, QdrantStorage
+from camel.types import VectorDistance
 from src.datamodel import ParagraphChunk
 
 load_dotenv()
@@ -17,6 +18,14 @@ class EmbeddingManager:
             url=config["url"],
         )
         self.batch_size = config.get("batch_size", 32)
+        # 初始化向量存储路径并绑定本地 QdrantStorage
+        self.index_path = Path(config.get("index_path", "vector_store"))
+        self.index_path.mkdir(parents=True, exist_ok=True)
+        self.storage = QdrantStorage(
+            vector_dim=self.embedder.get_output_dim(),
+            path=str(self.index_path),
+            distance=VectorDistance.COSINE,
+        )
 
     def bind_storage(self, storage: BaseVectorStorage) -> None:
         vec_dim_embed = self.embedder.get_output_dim()  # Camel 可动态探测

@@ -7,6 +7,14 @@ from qdrant_client import QdrantClient, models
 from camel.retrievers.vector_retriever import VectorRetriever
 from src.rag.embedding import EmbeddingManager
 
+
+@dataclass
+class RetrievedDoc:
+    doc_id: str
+    score: float
+    source: str
+    payload: dict
+
 class DenseRetriever:
     def __init__(self, client: QdrantClient, collection: str, embedder: EmbeddingManager):
         self.c = client
