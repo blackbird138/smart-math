@@ -1,4 +1,11 @@
 camel-ai
-PyPDF2
+requests
 jsonschema
-rich
+python-dotenv
+dataclasses-json
+qdrant-client
+backoff
+tiktoken
+pydantic
+pytest
+PyYAML
