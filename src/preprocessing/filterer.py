@@ -44,7 +44,7 @@ sys_msg = BaseMessage.make_assistant_message(
         """
         你是一个数学文档处理助手。
         输入：一个 JSON 格式的 chunk 列表，每个 chunk 都包含：
-          - chunk_type: 指定的类型（defination/theorem/lemma/exercise等）
+          - chunk_type: 指定的类型（definition/theorem/lemma/exercise等）
           - page_content: 原始文本内容，可能有缺失或多余的内容，多余的内容一定是后缀。
 
         任务：
