@@ -1,4 +1,4 @@
-# src/preprocessing/chunk_filterer.py
+# src/preprocessing/filterer.py
 
 import json, yaml, tiktoken, backoff
 from dotenv import load_dotenv
@@ -39,7 +39,7 @@ FILTER_SCHEMA = {
 
 # 3. 构造系统消息（包含 Schema）
 sys_msg = BaseMessage.make_assistant_message(
-    role_name="chunk_filterer",
+    role_name="filterer",
     content=dedent(
         """
         你是一个数学文档处理助手。
