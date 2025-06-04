@@ -58,6 +58,6 @@ class RetrieverManager:
             for hit in res:
                 if hit.id == pid or hit.score < self.threshold:
                     continue
-                pair = tuple(sorted(pid, hit.id))
+                pair = tuple(sorted([pid, hit.id]))
                 pairs.add((*pair, hit.score))
         return pairs
