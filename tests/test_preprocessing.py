@@ -16,6 +16,8 @@ def test_chunk_and_clean_and_filter():
         docs = [ParagraphChunk.from_json(s) for s in json_str_list]
     docs = clean_documents(docs)
     docs = chunk_and_filter(docs)
+    assert docs
+    assert isinstance(docs[0], ParagraphChunk)
     print(docs)
     json_str = [chunk.to_json() for chunk in docs]
     with SAVE_DIR.open("w", encoding="utf-8") as f:
