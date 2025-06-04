@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  mineru:
+    build: ./mineru_service          # 你贴的 Dockerfile
+    image: mineru:latest
+    volumes:                         # 与主机共享文件
+      - ./data:/data
+    ports: # 暴露 8000 给 Camel
+      - "8000:8000"
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all

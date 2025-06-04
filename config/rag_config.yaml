@@ -1,0 +1,21 @@
+# config/rag_config.yaml
+
+# Embedding 配置
+embedding:
+  model_name: "Pro/BAAI/bge-m3"
+  url: "https://api.siliconflow.cn/v1"
+  batch_size: 1
+
+# 向量存储与检索器
+retriever:
+  top_k: 5
+
+# RAG Agent 生成参数
+rag:
+  context_prefix: "以下是相关文档片段，请结合上下文回答："
+  max_context_tokens: 1500
+  llm:
+    platform: "openai"
+    model: "gpt-3.5-turbo"
+    temperature: 0.2
+    max_tokens: 512
