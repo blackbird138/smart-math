@@ -28,7 +28,7 @@
 import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import MarkdownIt from 'markdown-it'
-import markdownItKatex from 'markdown-it-katex'
+import markdownItMathTemml from 'markdown-it-math/temml'
 import DOMPurify from 'dompurify'
 import { API_BASE } from '../api'
 const query = ref('')
@@ -42,7 +42,7 @@ const md = new MarkdownIt({
   html: false,
   linkify: true,
   typographer: true,
-}).use(markdownItKatex)
+}).use(markdownItMathTemml)
 
 function renderMarkdown(text: string): string {
   const rawHtml = md.render(text)
