@@ -1,6 +1,11 @@
 <template>
   <div class="document-view">
-    <pdf-embed v-if="fileUrl" :source="fileUrl" style="width: 100%; height: 80vh;" />
+    <pdf-embed
+      v-if="fileUrl"
+      :source="fileUrl"
+      :page="page"
+      style="width: 100%; height: 80vh;"
+    />
     <p v-else>未找到文档</p>
   </div>
 </template>
@@ -14,7 +19,7 @@ import { API_BASE } from '../api'
 const route = useRoute()
 const page = computed(() => Number(route.query.page || 1))
 const fileId = computed(() => route.params.id as string)
-const fileUrl = computed(() => `${API_BASE}/files/${fileId.value}.pdf#page=${page.value}`)
+const fileUrl = computed(() => `${API_BASE}/files/${fileId.value}.pdf`)
 </script>
 
 <style scoped>
