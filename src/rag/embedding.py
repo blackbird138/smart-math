@@ -33,10 +33,12 @@ class EmbeddingManager:
         """
         如果已有索引且不强制重建，直接加载；否则对所有 documents 批量计算嵌入并存储。
         """
-        # 使用 index_path 判断本地目录是否非空
-        if any(self.index_path.iterdir()) and not force_rebuild:
-            self.storage.load()
-            return
+        # 根据当前 collection 判断是否已构建过索引
+        try:
+            if not force_rebuild and self.storage.status().vector_count > 0:
+                return
+        except Exception:
+            pass
 
         # 批量计算并存储
         for i in range(0, len(documents), self.batch_size):
