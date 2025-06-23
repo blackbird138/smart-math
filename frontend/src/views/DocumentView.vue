@@ -9,11 +9,12 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import PdfEmbed from 'vue-pdf-embed'
+import { API_BASE } from '../api'
 
 const route = useRoute()
 const page = computed(() => Number(route.query.page || 1))
 const fileId = computed(() => route.params.id as string)
-const fileUrl = computed(() => `/files/${fileId.value}.pdf#page=${page.value}`)
+const fileUrl = computed(() => `${API_BASE}/files/${fileId.value}.pdf#page=${page.value}`)
 </script>
 
 <style scoped>

@@ -18,8 +18,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
-
-const API_BASE = 'http://localhost:8001'
+import { API_BASE } from '../api'
 const query = ref('')
 const results = ref<any[]>([])
 
