@@ -1,6 +1,6 @@
 import requests, pathlib, json
 
-pdf_path=pathlib.Path("data/pdf.pdf").resolve()
+pdf_path=pathlib.Path("data/samples.pdf").resolve()
 
 def parse_pdf(url="http://localhost:8000/parse"):
     with pdf_path.open("rb") as f:

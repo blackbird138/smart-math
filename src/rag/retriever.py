@@ -15,25 +15,6 @@ class RetrievedDoc:
     source: str
     payload: dict
 
-class DenseRetriever:
-    def __init__(self, client: QdrantClient, collection: str, embedder: EmbeddingManager):
-        self.c = client
-        self.col = collection
-        self.embedder = embedder
-
-    def search(self, query: str, top_k: int = 20) -> List[RetrievedDoc]:
-        qv = self.embedder.embed(query)
-        hits = self.c.search(
-            self.col,
-            query_vector=("dense", qv),
-            limit=top_k,
-            with_vectors=False,
-            with_payload=True
-        )   # Qdrant dense search
-        return [RetrievedDoc(str(p.id), p.score, "dense", p.payload) for p in hits]
-
-
-
 class RetrieverManager:
     def __init__(self, embedding_mgr: EmbeddingManager, config: dict):
         self.emb_mgr = embedding_mgr
