@@ -12,6 +12,7 @@
 import { ref, computed, onBeforeUnmount } from 'vue'
 import PdfEmbed from 'vue-pdf-embed'
 import { useParseStore } from '../stores/parse'
+import { API_BASE } from '../api'
 
 const file = ref<File | null>(null)
 const store = useParseStore()
@@ -39,7 +40,7 @@ async function upload() {
   try {
     success.value = null
     isUploading.value = true
-    const res = await fetch('http://localhost:8001/ingest', {
+    const res = await fetch(`${API_BASE}/ingest`, {
       method: 'POST',
       body: formData
     })

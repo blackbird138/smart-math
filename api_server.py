@@ -1,11 +1,19 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from tempfile import NamedTemporaryFile
 from pathlib import Path
 import shutil
 from src.pipeline import SmartMathPipeline
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.mount("/files", StaticFiles(directory="data"), name="files")
 
