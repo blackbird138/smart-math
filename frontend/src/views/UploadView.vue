@@ -26,7 +26,7 @@ async function upload() {
   const formData = new FormData()
   formData.append('file', file.value)
   try {
-    const res = await fetch('http://localhost:8000/parse', {
+    const res = await fetch('http://localhost:8001/ingest', {
       method: 'POST',
       body: formData
     })

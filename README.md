@@ -6,6 +6,7 @@ Smart Math 是一个面向数学文档解析和问答的实验项目。项目通
 - `mineru_service/`：FastAPI 服务，提供 `/parse` 接口解析 PDF，通过 Dockerfile 构建镜像
 - `src/`：数据清洗、文本切片和向量检索的核心代码
 - `frontend/`：基于 Vue 3 + TypeScript 的前端项目
+- `api_server.py`：提供 `/ingest` 和 `/search` 接口的简易 FastAPI 应用
 - `config/`：RAG 及模型依赖的 YAML 配置文件
 - `tests/`：单元测试
 
@@ -31,6 +32,11 @@ Smart Math 是一个面向数学文档解析和问答的实验项目。项目通
 
 ## 快速使用
 可以以 `test.py` 为例，向本地 Mineru 服务上传 PDF 并获取解析结果。`src/pipeline.py` 中的 `SmartMathPipeline` 执行数据加载、清洗和向量化流程。
+
+如需通过 HTTP 调用，可启动 `api_server.py`：
+```bash
+uvicorn api_server:app --reload --port 8001
+```
 
 ## 运行测试
 ```bash
