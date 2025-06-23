@@ -27,13 +27,13 @@ class SmartMathPipeline:
         self.embedding_mgr.bind_storage(storage)
         self.retriever_mgr = RetrieverManager(self.embedding_mgr, self.cfg["retriever"])
 
-    def ingest_pdf(self, path: str) -> List[dict]:
+    def ingest_pdf(self, path: str) -> tuple[str, List[dict]]:
         """Parse PDF, clean and chunk it, then index the chunks."""
-        _, docs = load_json_by_mineru(path)
+        file_id, docs = load_json_by_mineru(path)
         docs = clean_documents(docs)
         docs = chunk_and_filter(docs)
         self.embedding_mgr.build_or_load(docs, force_rebuild=True)
-        return docs
+        return file_id, docs
 
     def search(self, query: str, top_k: int = 5) -> list[dict]:
         return self.retriever_mgr.retrieve(query, top_k=top_k)
