@@ -2,7 +2,8 @@
   <div class="upload-view">
     <input type="file" @change="onChange" />
     <button @click="upload">上传</button>
-    <p v-if="result">文件已上传，ID: {{ store.fileId }}</p>
+    <div v-if="isUploading" class="loading">上传中...</div>
+    <p v-if="success">上传成功，ID: {{ success }}</p>
     <pdf-embed v-if="previewUrl" :source="previewUrl" style="width: 100%; height: 60vh;" />
   </div>
 </template>
@@ -16,6 +17,8 @@ const file = ref<File | null>(null)
 const store = useParseStore()
 const result = computed(() => store.result)
 const previewUrl = ref<string | null>(null)
+const isUploading = ref(false)
+const success = ref<string | null>(null)
 
 function onChange(e: Event) {
   const target = e.target as HTMLInputElement
@@ -34,6 +37,8 @@ async function upload() {
   const formData = new FormData()
   formData.append('file', file.value)
   try {
+    success.value = null
+    isUploading.value = true
     const res = await fetch('http://localhost:8001/ingest', {
       method: 'POST',
       body: formData
@@ -42,8 +47,11 @@ async function upload() {
     const data = await res.json()
     store.setResult(data)
     store.setFileId(data.file_id)
+    success.value = data.file_id
   } catch (err) {
     console.error(err)
+  } finally {
+    isUploading.value = false
   }
 }
 </script>
@@ -51,5 +59,9 @@ async function upload() {
 <style scoped>
 .upload-view {
   padding: 1rem;
+}
+.loading {
+  margin-top: 0.5rem;
+  color: #42b983;
 }
 </style>
