@@ -9,7 +9,7 @@ app = FastAPI()
 
 app.mount("/files", StaticFiles(directory="data"), name="files")
 
-pipeline = SmartMathPipeline()
+pipeline = SmartMathPipeline(name="test")
 
 @app.post("/ingest")
 async def ingest(file: UploadFile = File(...)):
