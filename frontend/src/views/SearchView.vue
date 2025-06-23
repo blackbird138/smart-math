@@ -1,5 +1,8 @@
 <template>
   <div class="search-view">
+    <select v-model="selected" class="file-select">
+      <option v-for="f in files" :key="f" :value="f">{{ f }}</option>
+    </select>
     <input v-model="query" placeholder="输入查询" />
     <button @click="search">搜索</button>
     <p v-if="loading">搜索中…</p>
@@ -22,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 import markdownItKatex from 'markdown-it-katex'
@@ -32,6 +35,8 @@ const query = ref('')
 const results = ref<any[]>([])
 
 const loading = ref(false)
+const files = ref<string[]>([])
+const selected = ref('')
 
 const md = new MarkdownIt({
   html: false,
@@ -48,7 +53,7 @@ async function search() {
   if (!query.value.trim()) return
   loading.value = true
   try {
-    const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query.value)}`)
+    const res = await fetch(`${API_BASE}/search?file_id=${selected.value}&q=${encodeURIComponent(query.value)}`)
     const data = await res.json()
     results.value = data.results || []
   } catch (err) {
@@ -58,6 +63,19 @@ async function search() {
     loading.value = false
   }
 }
+
+onMounted(async () => {
+  try {
+    const res = await fetch(`${API_BASE}/list_files`)
+    const data = await res.json()
+    files.value = data.files || []
+    if (files.value.length && !selected.value) {
+      selected.value = files.value[0]
+    }
+  } catch (err) {
+    console.error(err)
+  }
+})
 
 </script>
 
