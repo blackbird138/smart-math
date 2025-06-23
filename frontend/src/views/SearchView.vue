@@ -12,7 +12,8 @@
              query: { page: item.metadata.page_num + 1 }
           }"
         >
-          {{ item.text }}（第 {{ item.metadata.page_num + 1 }} 页）
+          <span v-html="renderMarkdown(item.text)"></span>
+          （第 {{ item.metadata.page_num + 1 }} 页）
         </router-link>
       </li>
     </ul>
@@ -23,11 +24,25 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import MarkdownIt from 'markdown-it'
+import markdownItKatex from 'markdown-it-katex'
+import DOMPurify from 'dompurify'
 import { API_BASE } from '../api'
 const query = ref('')
 const results = ref<any[]>([])
 
 const loading = ref(false)
+
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  typographer: true,
+}).use(markdownItKatex)
+
+function renderMarkdown(text: string): string {
+  const rawHtml = md.render(text)
+  return DOMPurify.sanitize(rawHtml)
+}
 
 async function search() {
   if (!query.value.trim()) return
