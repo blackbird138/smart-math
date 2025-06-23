@@ -6,6 +6,7 @@ import pytest
 from pathlib import Path
 from src.rag.embedding import EmbeddingManager
 from src.rag.retriever import RetrieverManager
+from src.datamodel import ParagraphChunk
 
 DATA_DIR = Path(__file__).parent / "data" / "chunks_filtered.json"
 SAVE_DIR = Path(__file__).parent / "data" / "chunks_filtered.json"
@@ -15,8 +16,9 @@ with open("../config/rag_config.yaml", "r", encoding="utf-8") as f:
 
 def test_chunk_and_clean_and_filter():
     with DATA_DIR.open("r", encoding="utf-8") as f:
-        docs = json.load(f)
-    emb_mgr = EmbeddingManager(cfg["embedding"])
+        json_str_list = json.load(f)
+        docs = [ParagraphChunk.from_json(s) for s in json_str_list]
+    emb_mgr = EmbeddingManager(cfg["embedding"], "test")
     emb_mgr.build_or_load(docs, force_rebuild=True)
 
     # 获取底层 QdrantStorage 实例

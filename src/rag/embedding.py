@@ -12,7 +12,7 @@ from src.datamodel import ParagraphChunk
 load_dotenv()
 
 class EmbeddingManager:
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, collection_name: str):
         self.embedder = OpenAICompatibleEmbedding(
             model_type=config["model_name"],
             url=config["url"],
@@ -21,20 +21,13 @@ class EmbeddingManager:
         # 初始化向量存储路径并绑定本地 QdrantStorage
         self.index_path = Path(config.get("index_path", "vector_store"))
         self.index_path.mkdir(parents=True, exist_ok=True)
+        self.collection_name = collection_name
         self.storage = QdrantStorage(
             vector_dim=self.embedder.get_output_dim(),
             path=str(self.index_path),
+            collection_name=collection_name,
             distance=VectorDistance.COSINE,
         )
-
-    def bind_storage(self, storage: BaseVectorStorage) -> None:
-        vec_dim_embed = self.embedder.get_output_dim()  # Camel 可动态探测
-        vec_dim_store = storage.vector_dim  # QdrantStorage 暴露属性
-        if vec_dim_store != vec_dim_embed:
-            raise ValueError(
-                f"向量维度不一致：embed={vec_dim_embed}, store={vec_dim_store}"
-            )
-        self.storage = storage
 
     def build_or_load(self, documents: List[ParagraphChunk], force_rebuild: bool = False):
         """

@@ -10,8 +10,7 @@ def parse_pdf(url="http://localhost:8000/parse"):
             data={
                 "dump_md": "true",
                 "draw_layout": "true"
-            },
-            timeout=120
+            }
         )
     r.raise_for_status()
     print(r.json())
