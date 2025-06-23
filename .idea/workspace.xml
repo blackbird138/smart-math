@@ -4,26 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="75a32871-f7d7-49a5-aeb0-f31516d8eeef" name="更改" comment="fix pipline">
-      <change beforePath="$PROJECT_DIR$/data/mineru/images/20ac828c4474cd47328c3b8fdaa7f3c36c8e3a4898aec9e2ce37df1104303660.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/images/216f6d8037f359a2cc9198984aa476d1acd060a5eb9d60c01657111028a0c383.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/images/41b5162032da5fa6eccbe9e770eb2a406ed5d8ee6a246af981df4656f4c8a4b4.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/images/550e3bb43d184b853590f9e75f700d2f9707fb48cb020aeac86f06044fecaafc.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/images/618b885e1ed93ff563c31754d0ef9f4e11f7dc38691b36a2c50c2714b24218fd.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/images/704230f086a7435f14af34df139a8b4becacbebe32d3f0c8b3961de7d47cf810.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/images/94d41fd2e22a1b4704d6530dd7f2a47db376325163b9f1fad0f4e84e1818ad6a.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/images/9c8d5e1a234520570e196cc36764bd9c1a4f9fcb9b3182d5fba058d294f56206.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/images/c7d92e6701eeaabfddd9ac945d32a761dd49a225a53773b3e1698ea50b043454.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/images/d9cb3372ba7707ae55df4d440f2094f55236f011ff870cf36887f6622b0ac670.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/images/da86fca6095e647666e074759ec0c1c544c1ae66a471040bb8483c93dbd57f39.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/images/f69e94e57ebcef1ebabf00445ec2855a7b77bb23fe3975833659125c1cc8ca6b.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/pdf.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/pdf_layout.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/samples.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/samples_content_list.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/mineru/samples_layout.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pipeline.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/rag/embedding.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/rag/embedding.py" afterDir="false" />
+    <list default="true" id="75a32871-f7d7-49a5-aeb0-f31516d8eeef" name="更改" comment="fix pipline #2">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/vector_store/collection/test/storage.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/data/vector_store/collection/test/storage.sqlite" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/views/SearchView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/SearchView.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,11 +32,20 @@
       <option name="project" value="LOCAL" />
       <updated>1750681070563</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="fix pipline #2">
+      <option name="closed" value="true" />
+      <created>1750682207231</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1750682207231</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix pipline" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix pipline" />
+    <MESSAGE value="fix pipline #2" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix pipline #2" />
   </component>
 </project>

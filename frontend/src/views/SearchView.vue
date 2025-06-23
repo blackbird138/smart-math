@@ -2,12 +2,17 @@
   <div class="search-view">
     <input v-model="query" placeholder="输入查询" />
     <button @click="search">搜索</button>
-    <ul v-if="results.length">
+    <p v-if="loading">搜索中…</p>
+    <ul v-else-if="results.length > 0">
       <li v-for="(item, i) in results" :key="i">
         <router-link
-          :to="{ name: 'document', params: { id: item.payload.metadata.file_id }, query: { page: item.payload.metadata.page_num + 1 } }"
+          :to="{
+             name: 'document',
+             params: { id: item.metadata.file_id },
+             query: { page: item.metadata.page_num + 1 }
+          }"
         >
-          {{ item.payload.text }}（第{{ item.payload.metadata.page_num + 1 }}页）
+          {{ item.text }}（第 {{ item.metadata.page_num + 1 }} 页）
         </router-link>
       </li>
     </ul>
@@ -22,17 +27,23 @@ import { API_BASE } from '../api'
 const query = ref('')
 const results = ref<any[]>([])
 
+const loading = ref(false)
+
 async function search() {
-  if (!query.value) return
+  if (!query.value.trim()) return
+  loading.value = true
   try {
     const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query.value)}`)
-    if (!res.ok) throw new Error('搜索失败')
     const data = await res.json()
-    results.value = data.results
+    results.value = data.results || []
   } catch (err) {
     console.error(err)
+    results.value = []
+  } finally {
+    loading.value = false
   }
 }
+
 </script>
 
 <style scoped>
