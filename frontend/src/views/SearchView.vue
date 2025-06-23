@@ -8,16 +8,10 @@
     <p v-if="loading">搜索中…</p>
     <ul v-else-if="results.length > 0">
       <li v-for="(item, i) in results" :key="i">
-        <router-link
-          :to="{
-             name: 'document',
-             params: { id: item.metadata.file_id },
-             query: { page: item.metadata.page_num + 1 }
-          }"
-        >
+        <a href="#" @click.prevent="open(item.metadata.file_id, item.metadata.page_num + 1)">
           <span v-html="renderMarkdown(item.text)"></span>
           （第 {{ item.metadata.page_num + 1 }} 页）
-        </router-link>
+        </a>
       </li>
     </ul>
     <p v-else>暂无结果</p>
@@ -26,17 +20,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 import markdownItMathTemml from 'markdown-it-math/temml'
 import DOMPurify from 'dompurify'
 import { API_BASE } from '../api'
+import { useViewerStore } from '../stores/viewer'
 const query = ref('')
 const results = ref<any[]>([])
 
 const loading = ref(false)
 const files = ref<string[]>([])
 const selected = ref('')
+const viewer = useViewerStore()
 
 const md = new MarkdownIt({
   html: false,
@@ -62,6 +57,10 @@ async function search() {
   } finally {
     loading.value = false
   }
+}
+
+function open(id: string, page: number) {
+  viewer.setFile(id, page)
 }
 
 onMounted(async () => {
