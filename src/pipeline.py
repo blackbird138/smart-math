@@ -12,13 +12,10 @@ from src.rag.retriever import RetrieverManager
 class SmartMathPipeline:
     """Simple pipeline that wires the project modules together."""
 
-    def __init__(self, config_path: str = "config/rag_config.yaml", name: str = None, index_path: str | Path | None = None):
+    def __init__(self, config_path: str = "config/rag_config.yaml", name: str = None):
         with open(Path(config_path), "r", encoding="utf-8") as f:
             self.cfg = yaml.safe_load(f)
         self.embedding_mgr = EmbeddingManager(self.cfg["embedding"], name)
-        idx_path = Path(index_path or "vector_store")
-        idx_path.mkdir(parents=True, exist_ok=True)
-
         self.retriever_mgr = RetrieverManager(self.embedding_mgr, self.cfg["retriever"])
 
     def ingest_pdf(self, path: str) -> tuple[str, List[dict]]:

@@ -19,7 +19,7 @@ class EmbeddingManager:
         )
         self.batch_size = config.get("batch_size", 32)
         # 初始化向量存储路径并绑定本地 QdrantStorage
-        self.index_path = Path(config.get("index_path", "vector_store"))
+        self.index_path = Path(config.get("index_path", "data/vector_store"))
         self.index_path.mkdir(parents=True, exist_ok=True)
         self.collection_name = collection_name
         self.storage = QdrantStorage(

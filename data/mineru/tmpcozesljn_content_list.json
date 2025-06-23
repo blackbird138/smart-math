@@ -1,0 +1,770 @@
+[
+    {
+        "type": "text",
+        "text": "4.1 引言: 回到线性方程组",
+        "text_level": 1,
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "回首 $\\ S 1 . 3$ 考察的线性方程组",
+        "page_idx": 0
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\left\\{ \\begin{array} { l } { a _ { 1 1 } X _ { 1 } + \\cdot \\cdot \\cdot + a _ { 1 n } X _ { n } = b _ { 1 } } \\\\ { a _ { 2 1 } X _ { 1 } + \\cdot \\cdot \\cdot + a _ { 2 n } X _ { n } = b _ { 2 } } \\\\ { \\qquad \\vdots \\qquad \\vdots } \\\\ { a _ { m 1 } X _ { 1 } + \\cdot \\cdot \\cdot + a _ { m n } X _ { n } = b _ { m } . } \\end{array} \\right.\n$$",
+        "text_format": "latex",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "当时我们默认系数和所求的解都在 $\\mathbb { C }$ 中. 然而解方程所用的 Gauss–Jordan 消元法所需的仅是四则运算, 无关复数的一切其他性质, 所以现在可以假定 $a _ { i j }$ 和 $b _ { i }$ 都落在选定的域 $F$ 中, 在 $F$ 上求解. 我们有:",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "在任意域 $F$ 上, 线性方程组 (4.1.1) 可以由 Gauss–Jordan 消元法判定是否有解; 若有解, 则消元法可以描述所有的解.",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "这是因为 §§1.3—1.4 介绍的行运算和 Gauss–Jordan 消元法理论可以一字不易地推广到任意域上. 在线性方程组的研究中, $b _ { 1 } = \\ldots = b _ { m } = 0$ 的情形占有特殊的地位.",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "定义 4.1.1 考虑域 $F$ 上形如 (4.1.1) 的 $n$ 元线性方程组. 如果 $b _ { 1 } = \\cdots = b _ { m } = 0$ ,则称此方程组为齐次的.",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "消元法的基础是矩阵的初等行变换. 以下转换视角, 从映射的观点来理解域 $F$ 上的线性方程组.",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "给定 $n , m \\in \\mathbb { Z } _ { \\geq 1 }$ 和一族系数 $( a _ { i j } ) _ { \\stackrel { \\textstyle 1 \\leq i \\leq m } { 1 \\leq j \\leq n } }$ , 其中 $a _ { i j } \\in F$ , 定义映射",
+        "page_idx": 0
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\begin{array} { l } { { \\displaystyle T : F ^ { n } \\xrightarrow [ ] { } { } _ { } } \\qquad \\xrightarrow { } F ^ { m } } \\\\ { { } ( x _ { j } ) _ { j = 1 } ^ { n } \\longmapsto \\left( \\sum _ { j = 1 } ^ { n } a _ { 1 j } x _ { j } , \\dots , \\sum _ { j = 1 } ^ { n } a _ { m j } x _ { j } \\right) . }  \\end{array}\n$$",
+        "text_format": "latex",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "今后也将数组 $( x _ { 1 } , \\ldots , x _ { n } )$ 写作 $\\mathbf { \\Psi } _ { \\pmb { x } }$ 的形式. 对于给定的 $\\pmb { b } = ( b _ { 1 } , \\dots , b _ { m } ) \\in F ^ { m }$ . 解(4.1.1) 相当于研究纤维 $T ^ { - 1 } ( b )$ (定义 2.2.10). 对任何映射 $F ^ { n } \\to F ^ { m }$ 都可以考虑同样的问题, 然而眼下问题的特点在于 $T$ 是 “线性” 的. 更明确地说, 在 $F ^ { n }$ 上定义",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "$\\star$ 两个数组的加法运算",
+        "text_level": 1,
+        "page_idx": 0
+    },
+    {
+        "type": "equation",
+        "text": "$$\n( x _ { 1 } , \\ldots , x _ { n } ) + ( x _ { 1 } ^ { \\prime } , \\ldots , x _ { n } ^ { \\prime } ) : = ( x _ { 1 } + x _ { 1 } ^ { \\prime } , \\ldots , x _ { n } + x _ { n } ^ { \\prime } ) ,\n$$",
+        "text_format": "latex",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "其中 $( x _ { 1 } , \\ldots , x _ { n } ) , ( x _ { 1 } ^ { \\prime } , \\ldots , x _ { n } ^ { \\prime } ) \\in F ^ { n }$ ;",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "$\\star$ 域 $F$ 之于数组的纯量乘法运算",
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "text": "$$\nt ( x _ { 1 } , \\ldots , x _ { n } ) : = ( t x _ { 1 } , \\ldots , t x _ { n } ) ;\n$$",
+        "text_format": "latex",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "其中 $t \\in F$ ",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "如此定义的加法满足结合律和交换律, 而纯量乘法对加法满足结合律和分配律: ",
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "text": "$$\n( t t ^ { \\prime } ) \\mathbf { \\boldsymbol { x } } = t ( t ^ { \\prime } \\mathbf { \\boldsymbol { x } } ) , \\quad t ( \\mathbf { \\boldsymbol { x } } + \\mathbf { \\boldsymbol { y } } ) = t \\mathbf { \\boldsymbol { x } } + t \\mathbf { \\boldsymbol { y } } , \\quad ( t + t ^ { \\prime } ) \\mathbf { \\boldsymbol { x } } = t \\mathbf { \\boldsymbol { x } } + t ^ { \\prime } \\mathbf { \\boldsymbol { x } } ;\n$$",
+        "text_format": "latex",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "我们不厌其烦地重申: $t , t ^ { \\prime } \\in F$ 而 $\\textstyle { \\boldsymbol { x } } , { \\boldsymbol { y } } \\in F ^ { n }$ . 此外, $\\mathbf { 0 } : = ( 0 , \\ldots , 0 ) \\in F ^ { n }$ (必要时记为${ \\bf 0 } _ { n } \\mathrm { . }$ ) 对加法充当了零元的角色:",
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\pmb { x } + \\mathbf { 0 } = \\pmb { x } = \\mathbf { 0 } + \\pmb { x } .\n$$",
+        "text_format": "latex",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "由于运算是逐分量定义的, 上述性质全都归结为域 $F$ 的相应性质. 另记 $- { \\pmb x } : = ( - 1 ) { \\pmb x }$ 和 $\\pmb { x } ^ { \\prime } - \\pmb { x } : = \\pmb { x } ^ { \\prime } + ( - \\pmb { x } )$ .",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "这对解方程的问题有何启发? 请读者验证映射 $T$ 满足",
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "text": "$$\nT ( \\underset { F ^ { n } } { x } + \\underset { F ^ { n } } { y } ) = \\underset { F ^ { m } } { T ( \\pmb { x } ) } + T ( \\pmb { y } ) , \\quad T ( t \\pmb { x } ) = t \\cdot T ( \\pmb { x } ) .\n$$",
+        "text_format": "latex",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "事实上, $T ( { \\pmb x } )$ 的每个分量 $\\textstyle \\sum _ { j = 1 } ^ { n } a _ { i j } x _ { j } \\in F$ 都有这些性质 $( 1 \\leq i \\leq m )$ . 一个立即的结论是线性方程组的解可以线性叠加. 何谓线性叠加? 先固定方程组 (4.1.1) 的系数矩阵$( a _ { i j } ) _ { \\stackrel { \\textstyle 1 \\leq i \\leq m } { 1 \\leq j \\leq n } }$ .",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "$\\star$ 若 $\\pmb { x } = ( x _ { 1 } , \\dots , x _ { n } )$ 是方程组对 $\\pmb { b } = ( b _ { 1 } , \\dots , b _ { m } )$ 的解, 而 $\\pmb { x } ^ { \\prime } = ( x _ { 1 } ^ { \\prime } , \\dots , x _ { n } ^ { \\prime } )$ 是对$\\pmb { b } ^ { \\prime } = ( b _ { 1 } ^ { \\prime } , \\dots , b _ { m } ^ { \\prime } )$ 的解, 则 ${ \\pmb x } + { \\pmb x } ^ { \\prime }$ 是方程组对 $\\pmb { b } + \\pmb { b } ^ { \\prime }$ 的解;",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "$\\star$ 若 $\\pmb { x } = ( x _ { 1 } , \\dots , x _ { n } )$ 是 (4.1.1) 对 $\\pmb { b } = ( b _ { 1 } , \\dots , b _ { m } )$ 的解, $t \\in F$ , 则 $t { \\pmb x }$ 是方程组对$^ { t b }$ 的解.",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "因此像集 $\\mathrm { i m } ( T )$ 在 $F ^ { m }$ 的加法和纯量乘法运算下封闭. 像集还是非空的, 因为$\\mathbf { 0 } _ { m } = T ( \\mathbf { 0 } _ { n } ) \\in \\mathrm { i m } ( T )$ .",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "作为推论, 若 $\\mathbf { \\Psi } _ { \\pmb { x } }$ 和 $ { \\boldsymbol { { x } } } ^ { \\prime }$ 是方程组对同一个 $\\pmb { b } \\in F ^ { m }$ 的解, 则 $\\pmb { y } : = \\pmb { x } - \\pmb { x } ^ { \\prime }$ 是对应的齐次方程组的解. 反之, 若已知 $\\mathbf { \\Psi } _ { \\pmb { x } }$ 是原方程组的解, 而 $_ y$ 是对应的齐次方程组的解, 则$\\mathbf { { \\boldsymbol { x } } } + \\mathbf { { \\boldsymbol { y } } }$ 仍是原方程组的解.",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "综之, 只要找出特解 $\\pmb { x } \\in T ^ { - 1 } ( \\pmb { b } )$ , 方程组 (4.1.1) 的通解便由下式描述",
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\begin{array} { r l } & { T ^ { - 1 } ( { \\pmb b } ) = { \\pmb x } + T ^ { - 1 } ( { \\pmb 0 } ) } \\\\ & { \\qquad : = \\left\\{ { \\pmb x } + { \\pmb y } : { \\pmb y } \\in F ^ { n } , T ( { \\pmb y } ) = { \\pmb 0 } _ { m } \\right\\} . } \\end{array}\n$$",
+        "text_format": "latex",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "这就引出了以下观察:",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "$\\star$ 线性方程组 (4.1.1) 有解当且仅当 $b : = ( b _ { 1 } , \\dots , b _ { m } ) \\in \\mathrm { i m } ( T )$ ;",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "$\\star$ 一旦它有解, 则精确到用某个特解的 “平移”, 解集 $T ^ { - 1 } ( b )$ 的性状完全由对应的齐次方程组确定, 或者说由系数矩阵 $( a _ { i j } ) _ { \\underline { { { 1 } } } \\underline { { { \\le } } } i \\underline { { { \\le } } } m }$ 确定.",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "这表明对于解方程而言, $F ^ { n }$ 的子集 ${ \\cal T } ^ { - 1 } ( { \\bf 0 } )$ , 亦即对应的齐次方程组的解集和$\\mathrm { i m } ( T )$ 一样是重要的对象. 一如 $\\mathrm { i m } ( T )$ , 子集 ${ \\cal T } ^ { - 1 } ( { \\bf 0 } )$ 同样对 $F ^ { n }$ 的加法和纯量乘法运算封闭, 这是因为",
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\begin{array} { c } { { T ( { \\pmb x } ) = { \\bf 0 } _ { m } = T ( { \\pmb x } ^ { \\prime } ) \\ \\Longrightarrow } } \\\\ { { T ( { \\pmb x } + { \\pmb x } ^ { \\prime } ) = { \\bf 0 } _ { m } + { \\bf 0 } _ { m } = { \\bf 0 } _ { m } , } } \\\\ { { t \\in F , \\quad T ( { \\pmb x } ) = { \\bf 0 } _ { m } \\ \\Longrightarrow } } \\\\ { { T ( t { \\pmb x } ) = t T ( { \\pmb x } ) = t { \\bf 0 } _ { m } = { \\bf 0 } _ { m } . } } \\end{array}\n$$",
+        "text_format": "latex",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "对 $T ^ { - 1 } ( \\mathbf { 0 } _ { m } )$ 可以提许多问题, 比如说, 解集的参数化所指究竟为何? 如何确定所需的参数个数, 即先前所谓的 “自由度”?",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "定义 4.1.2 设 $T : F ^ { n } \\to F ^ { m }$ 按上述方式对应到一个齐次线性方程组. 若$\\pmb { v } _ { 1 } , \\dotsc , \\pmb { v } _ { h } \\in \\ F ^ { n }$ 都是方程组的解, 而且所有解 $\\pmb { x } \\in F ^ { n }$ 都可以通过加法和纯量乘法表作",
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\pmb { x } = \\sum _ { i = 1 } ^ { h } t _ { i } \\pmb { v } _ { i } , \\quad t _ { 1 } , \\dots , t _ { h } \\in F ,\n$$",
+        "text_format": "latex",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "其中 $( t _ { 1 } , \\ldots , t _ { h } )$ 由 $\\textbf { \\em x }$ 唯一确定, 则称 $\\pmb { v } _ { 1 } , \\ldots , \\pmb { v } _ { h }$ 是该齐次方程组的一组基础解系.",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "求出基础解系 $\\pmb { v } _ { 1 } , \\ldots , \\pmb { v } _ { h }$ 相当于用 $h$ 个参数来描述齐次线性方程组的解集.",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "命题 4.1.3 考虑形如 (4.1.1) 的 $n$ 元齐次线性方程组, 其中 $\\pmb { b } = 0$ . 设消元法给出的简化行梯矩阵有 $\\boldsymbol { r }$ 个主元, 则对应的齐次方程组有基础解系 $\\pmb { v } _ { 1 } , \\ldots , \\pmb { v } _ { n - r }$ .",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "证明 沿用 $\\ S 1 . 4$ 的记号. 将简化行梯矩阵中不含主元的列按编号枚举为",
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "$$\n1 \\leq f _ { 1 } < \\cdot \\cdot \\cdot < f _ { n - r } \\leq n .\n$$",
+        "text_format": "latex",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "对公式 (1.4.1) 代入 $b _ { k } = 0$ 给出齐次线性方程组的通解, 其中变元 $X _ { f _ { 1 } } , \\dotsc , X _ { f _ { n - r } }$ 可以任意赋值, 其余对应到主元的变元则由这些值唯一确定. 因此对每个 $1 \\leq i \\leq n - r$ 都可以取 $\\pmb { v } _ { i } \\in F ^ { n }$ 为齐次线性方程组的解, 使得",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "$\\star$ 它的第 $f _ { i }$ 个分量为 1,$\\star$ 当 $1 \\leq j \\leq n - r$ 而 $j \\neq i$ 时它的第 $f _ { j }$ 个分量为 0,$\\star$ 其余分量由上述资料和 (1.4.1) 唯一确定.",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "若 $\\pmb { x } \\in F ^ { n }$ 是齐次方程组的任意解, 则上述讨论表明 $\\begin{array} { r } { \\pmb { x } = \\sum _ { i = 1 } ^ { n - r } t _ { i } \\pmb { v } _ { i } } \\end{array}$ , 其中的 $t _ { i } \\in F$ 是且仅能是 $\\mathbf { \\Psi } _ { \\pmb { x } }$ 的第 $f _ { i }$ 个分量, 因此它们由 $\\scriptstyle { \\mathbf { { \\boldsymbol { x } } } }$ 唯一确定. □",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "进一步, 我们还可以问解集 ${ \\cal T } ^ { - 1 } ( { \\bf 0 } )$ 的参数个数 $n - r$ 能否由 $T$ 内在地刻画. 基于几何直观, 答案理应是肯定的. 我们现在有充分的动机来研究:",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$\\star$ 带有加法和来自域 $F$ 的纯量乘法这两种运算的代数结构, 例如 $F ^ { n }$ , 或者先前提到的 $\\mathrm { i m } ( T )$ 和 ${ \\cal T } ^ { - 1 } ( { \\bf 0 } )$ ;  \n$\\star$ 保持这种代数结构的映射, 例如之前考虑的 $T : F ^ { n }  F ^ { m }$ .",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "这就将向量空间的抽象理论推到了聚光灯下. 稍后展开的理论将会表明, 此一观点和 Gauss–Jordan 消元法是相互交融的.",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "4.2 向量空间",
+        "text_level": 1,
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "域 $F$ 上的向量空间又称为线性空间. 这是具有加法, 纯量乘法1)运算以及零元的一种代数结构; 加法是空间上的二元运算, 纯量乘法则涉及域 $F$ 的元素在 $V$ 上的作用.",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "定义 4.2.1 域 $F$ 上的 $F .$ -向量空间简称向量空间, 这是指资料 $( V , + , \\cdot , 0 _ { V } )$ , 其中$V$ 是集合, $0 _ { V } \\in V$ , 而 $+ : V \\times V  V$ 和 · : $: F \\times V \\to V$ 分别写作 $( u , v ) \\mapsto u + v$ 和$( t , v ) \\mapsto t \\cdot v$ 的形式, 使得以下条件成立.",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "(i) 加法满足以下条件:",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$D$ 结合律 $( u + v ) + w = u + ( v + w ) ;$ ;  \n$D$ 幺元性质 $v + 0 _ { V } = v = 0 _ { V } + v$ ;  \n$D$ 交换律 $u + v = v + u ;$ ;  \n$D$ 加法逆元 对所有 $\\boldsymbol { v }$ 皆存在 $- v$ 使得 $v + ( - v ) = 0 _ { V }$ .",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "(ii) 纯量乘法 $t \\cdot v$ 也简写为 $t v$ , 它满足以下条件:",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$D$ 结合律 $s \\cdot ( t \\cdot v ) = ( s t ) \\cdot v \\colon$ ;  \n$D$ 幺元性质 $\\boldsymbol { 1 \\cdot v } = \\boldsymbol { v }$ , 此处 1 代表 $F$ 的乘法幺元.",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "(iii) 纯量乘法对加法满足: ",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$D$ 分配律之一 $( s + t ) \\cdot v = s v + t v$ ;  \n$D$ 分配律之二 $s \\cdot ( u + v ) = s u + s v .$ .",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "其中 ${ \\mathbf { } } u , v , w$ (或 $s , t )$ 代表 $V$ (或 $F$ ) 中的任意元素. 不致混淆时, 我们也简记 $0 _ { V }$ 为 0,将 $u + ( - v )$ 写作 $u - v$ , 并以 $V$ 总括资料 $( V , + , \\cdot , 0 )$ .",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "向量空间 $V$ 的元素也称为其中的向量. 定义中的 $0 _ { V }$ 又称为 $V$ 的零元, 或零向量与向量相对, 域 $F$ 的元素则称为纯量.",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "定义的模式和环的定义 3.1.1 明显相似. 由之推出的以下几条性质也是出于同样理路.",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$\\star$ 零元 $0 _ { V }$ 由相应的幺元性质唯一确定, 所以资料中的 $0 _ { V }$ 其实可以略去, 要求存在满足该性质的元素即可.  \n$\\star$ 加法满足消去律: $u + v = u ^ { \\prime } + v$ 蕴涵 $u = u ^ { \\prime }$ . 作为推论, 向量 $\\mathbf { \\sigma } _ { v }$ 的加法逆元 $- v$ 唯一.  \n$\\star$ 逆元的唯一性也蕴涵 $- ( - v ) = v$ .  \n$\\star$ 对于任何 $t \\in F$ 都有 $t \\cdot 0 _ { V } = 0 _ { V }$ , 这是对 $t \\cdot ( 0 _ { V } ) = t \\cdot ( 0 _ { V } + 0 _ { V } ) = t \\cdot 0 _ { V } + t \\cdot 0 _ { V }$ 应用加法消去律的结论.  \n$\\star$ 我们有恒等式 $0 \\cdot v = 0$ ; 等号左边的 $0 \\in F$ , 而右边的 $0 = 0 _ { V } \\in V$ . 这是缘于$0 \\cdot v = ( 0 + 0 ) \\cdot v = 0 \\cdot v + 0 \\cdot v$ 和消去律.  \n$\\star$ 我们有 $( - 1 ) \\cdot v = - v$ . 这是缘于 $( - 1 ) \\cdot v + v = ( - 1 ) \\cdot v + 1 \\cdot v = ( - 1 + 1 ) \\cdot v = 0 \\cdot v = 0 .$ ",
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "定义 4.2.2 设 $V$ 为 $F .$ -向量空间. 如果 $V$ 的子集 $V _ { 0 }$ 包含 0, 而且在加法和纯量乘法运算下封闭, 则 $( V _ { 0 } , + , \\cdot , 0 )$ 也是 $F .$ -向量空间, 称之为 $V$ 的子空间.",
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "子空间的定义中未要求 $V _ { 0 }$ 对取逆 $v \\mapsto - v$ 封闭, 这是因为 $- v = ( - 1 ) \\cdot v$ , 所以要求纯量乘法的封闭性已经足够.",
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "练习 4.2.3 给定 $F$ -向量空间 $V$ , 请验证任意多个子空间的交仍然是 $V$ 的子空间.",
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "例 4.2.4 (零空间) 最平凡的向量空间是 $\\{ 0 \\}$ , 它是所有 $F$ -向量空间的子空间.",
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "向量空间理论也有直观的几何实例, 关乎中学数学里熟悉的平面与空间向量.",
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "例 4.2.5 (向量几何) 平面向量对加法和纯量乘法构成 $\\mathbb { R }$ -向量空间, 空间向量亦同.这是向量空间最直观的例子. 在未取定坐标的情况下, 向量的加法是按照平行四边形法则确定的, 而向量的纯量乘法则是带方向的伸缩, 负号代表反向; 相关的几何图像在本章开头已有回顾. 为了用代数语言表达角度和长度等几何概念, 还需要引入内积的概念, 这将是第九章的主题.",
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "例 4.2.6 (域本身作为向量空间) 域 $F$ 相对于域的加法和乘法 (在此扮演纯量乘法的角色) 构成 $F .$ -向量空间, 这是最简单的非零 $F$ -向量空间, 它在后续章节还会反复现身.",
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "例 4.2.7 设 $n \\in \\mathbb { Z } _ { \\geq 0 }$ . 按以下方式赋予 $F ^ { n }$ 向量空间的结构",
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\begin{array} { r l } & { ( x _ { 1 } , \\ldots , x _ { n } ) + ( y _ { 1 } , \\ldots , y _ { n } ) : = ( x _ { 1 } + y _ { 1 } , \\ldots , x _ { n } + y _ { n } ) , \\quad x _ { i } , y _ { i } \\in F ; } \\\\ & { \\quad \\quad t ( x _ { 1 } , \\ldots , x _ { n } ) : = ( t x _ { 1 } , \\ldots , t x _ { n } ) , \\quad t \\in F . } \\end{array}\n$$",
+        "text_format": "latex",
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "其中的零元取为 $\\mathbf { 0 } : = ( 0 , \\ldots , 0 )$ . 这是 $\\ S 4 . 1$ 讨论的例子. 定义所需的性质都是明显的.  \n注意到 $F ^ { 0 }$ 规定为零空间, 而 $F ^ { 1 }$ 无非是例 4.2.6 介绍的空间 $F$ .",
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "如果在 $F ^ { n }$ 的定义中具体取 $F = \\mathbb { R }$ 和 $n = 2$ (或 $n = 3$ ), 则 $\\mathbb { R } ^ { 2 }$ (或 $\\mathbb { R } ^ { 3 }$ ) 可以等同于坐标化的平面 (或空间). 中学数学所出现的平面 (或空间) 向量带有始点和终点, 写作诸如 $\\overrightarrow { P Q }$ 的形式. 一旦在平面 (或空间) 中选定一点作为原点, 则总是可以将所有向量的始点平移到原点, 从而化约到例 4.2.5 的情境. 若进一步建立坐标系2), 便化约到此处讨论的 $\\mathbb { R } ^ { 2 }$ 和 $\\mathbb { R } ^ { 3 }$ .",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "例 4.2.8 域 $F$ 上的多项式环 $F [ X ]$ 相对于纯量乘法",
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\nt \\cdot \\sum _ { n \\geq 0 } c _ { n } X ^ { n } : = \\sum _ { n \\geq 0 } t c _ { n } X ^ { n } , \\quad t \\in F\n$$",
+        "text_format": "latex",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "和 $F [ X ]$ 本身的加法构成 $F .$ -向量空间. 推而广之, 任意个变元的多项式环 $F [ X , Y , \\ldots ]$ 也都是 $F .$ -向量空间.",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "以下介绍两种从已有的向量空间构造新空间的抽象途径",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "例 4.2.9 (向量空间的直积) 首先回忆 (2.3.1) 的定义: 对任意一族集合 $V _ { i }$ , 其中下标 $i$ 遍历给定的集合 $I$ (暂时要求非空), 积集 $\\textstyle \\prod _ { i \\in I } V _ { i }$ 的元素是以 $I$ 为下标的元素组$( v _ { i } ) _ { i \\in I }$ , 其中 $v _ { i } \\in V _ { i }$ . 如果每个 $V _ { i }$ 都带有 $F .$ -向量空间的结构, 则 $\\textstyle \\prod _ { i \\in I } V _ { i }$ 也有自然的$F .$ -向量空间结构, 方法是逐分量地定义运算为",
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\n( v _ { i } ) _ { i } + ( w _ { i } ) _ { i } = ( v _ { i } + w _ { i } ) _ { i } , \\quad t ( v _ { i } ) _ { i } = ( t v _ { i } ) _ { i } ,\n$$",
+        "text_format": "latex",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "下标 $\\mathbf { \\chi } _ { i }$ 遍历 $I$ 而 $t \\in F$ . 我们称此向量空间 $\\textstyle \\prod _ { i \\in I } V _ { i }$ 为 $( V _ { i } ) _ { i \\in I }$ 的直积. 所需的结合律等诸般性质全部都能化到每个 $V _ { i }$ 上来验证. 思路和环的直积 (例 3.1.13) 并无二致.",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "如果取所有 $V _ { i }$ 都是同一个向量空间 $V$ , 则和积集的情形类似, 我们将对应的$\\textstyle \\prod _ { i \\in I } V$ 记为 $V ^ { I }$ . 回忆到在关于集合论的讨论中, 我们在 $I = \\emptyset$ 时不无理由地规定 $V ^ { I }$ 为独点集. 建立在独点集上的向量空间结构能且仅能是零空间, 因此我们规定当 $I = \\emptyset$ 时 $V ^ { I } : = \\{ 0 \\}$ . 这一切可以视为例 4.2.7 的推广: 不难看出 $F ^ { n }$ 即是 $F ^ { \\{ 0 , \\ldots , n - 1 \\} }$ .",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "例 4.2.10 (向量空间的直和) 例 4.2.9 介绍的直积 $\\textstyle \\prod _ { i \\in I } V _ { i }$ 有一个更常用的子空间,称为 $( V _ { i } ) _ { i \\in I }$ 的直和, 定义为",
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\bigoplus _ { i \\in I } V _ { i } : = \\left\\{ ( v _ { i } ) _ { i } \\in \\prod _ { i \\in I } V _ { i } : { \\mathfrak { E } } { \\mathfrak { E } } \\{ { \\mathfrak { X } } { \\mathcal { H } } { \\mathcal { H } } \\} { \\mathbb { H } } { \\mathcal { H } } \\cap { \\mathcal { i } } \\setminus i \\in I \\left\\{ { \\mathfrak { H } } { \\hat { \\mathfrak { H } } } : v _ { i } \\neq 0 \\right\\} . \\right.\n$$",
+        "text_format": "latex",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "留意到如果 $( v _ { i } ) _ { i \\in I }$ 和 $( w _ { i } ) _ { i \\in I }$ 都仅有至多有限个分量非零, 则 $( v _ { i } + w _ { i } ) _ { i \\in I }$ 亦然, 因为两个有限集的并仍有限. 因此 $\\textstyle \\bigoplus _ { i \\in I } V _ { i }$ 对加法封闭. 此外它显然也对纯量乘法封闭, 并且包含 $0 = ( 0 ) _ { i \\in I }$ . 于是 $\\textstyle \\bigoplus _ { i \\in I } V _ { i }$ 确实是 $\\textstyle \\prod _ { i \\in I } V _ { i }$ 的子空间.",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "每个 $V _ { i }$ 都自然地嵌入为 $\\oplus _ { j \\in I } V _ { j }$ 作为子空间, 方式是映 $v \\in V _ { i }$ 为 $( v _ { j } ) _ { j \\in I }$ , 其中$v _ { i } : = v$ 而 $j \\neq i$ 时 $v _ { j } : = 0$ . 考察各个分量, 立见在这些嵌入之下有",
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "$$\ni \\neq j \\implies V _ { i } \\cap V _ { j } = \\{ 0 \\} .\n$$",
+        "text_format": "latex",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "如果取所有 $V _ { i }$ 都是同一个向量空间 $V$ , 则对应的直和表作 $V ^ { \\oplus I }$ , 以区别于直积$V ^ { I }$ . 当 $I$ 有限时, 至多有限个分量非零的条件自动成立, 这时 $\\textstyle \\prod _ { i \\in I } V _ { i } = \\bigoplus _ { i \\in I } V _ { i }$ . 本书涉及的直和的以这类情形居多.",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "约定 4.2.11 规定空直和与空直积 (相当于 $I = \\emptyset$ 情形) 为零空间 $\\{ 0 \\}$ . 这与 $\\ S 2 . 3$ 的规定兼容.",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "直和是向量空间理论中的一则基本构造. 关于直和的进一步讨论将在 $\\ S 4 . 1 0$ 接续.",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "4.3 矩阵及其运算",
+        "text_level": 1,
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "矩阵在 $\\ S 1 . 3$ 关于消元法的讨论中已经出现. 当时我们对矩阵元在哪个数系取值含糊其词. 现在既然有了域的概念, 便可以清楚地定义一般的矩阵.",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "定义 4.3.1 (域上的矩阵) 设 $m , n \\in \\mathbb { Z } _ { \\geq 1 }$ . 域 $F$ 上的 $m \\times n$ 矩阵是指如下的资料",
+        "page_idx": 6
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\pmb { A } = ( a _ { i j } ) _ { 1 \\pmb { \\leq } i \\pmb { \\leq } m }\n$$",
+        "text_format": "latex",
+        "page_idx": 6
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathbf { \\Sigma } = \\left( \\begin{array} { c c c } { a _ { 1 1 } } & { \\cdots } & { a _ { 1 n } } \\\\ { \\vdots } & { \\ddots } & { \\vdots } \\\\ { a _ { m 1 } } & { \\cdots } & { a _ { m n } } \\end{array} \\right) = \\left( \\begin{array} { c c c } { \\vdots } & { } & { } \\\\ { \\cdots } & { a _ { i j } } & { \\cdots } \\\\ { } & { \\vdots } & { } \\\\ { } & { \\vdots } \\end{array} \\right)\n$$",
+        "text_format": "latex",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "其中 $a _ { i j } \\in F$ , 称为矩阵 $A$ 的第 $( i , j )$ 个矩阵元或 $( i , j )$ -项, 而 $n \\times n$ 矩阵也称为 $n$ 阶方阵.",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "今后我们将 $F$ 上的所有 $m \\times n$ 矩阵 ( $m$ 行 $n$ 列) 构成的集合记为 $\\mathrm { M } _ { m \\times n } ( F )$ .",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "按惯例, 我们经常将矩阵 $\\pmb { A } = ( a _ { i j } ) _ { 1 \\leq i \\leq m }$ 简记为 $( a _ { i j } ) _ { i , j }$ . 严格地说, $F$ 上的 $m \\times n$ 矩阵是集合 $F ^ { \\{ 1 , . . . , m \\} \\times \\{ 1 , . . . , n \\} }$ 的元素; 这种原教旨主义的解读当然是庸人自扰.",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "现在赋予集合 $\\mathrm { M } _ { m \\times n } ( F )$ 作为向量空间所需的运算.",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "$D$ 加法 对 $\\mathrm { M } _ { m \\times n } ( F )$ 的任两个元素 $\\pmb { A } = ( a _ { i j } ) _ { i , j }$ 和 $B = ( b _ { i j } ) _ { i , j }$ , 定义",
+        "page_idx": 6
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\begin{array} { r } { A + B : = ( a _ { i j } + b _ { i j } ) _ { 1 \\leq i \\leq m } . } \\end{array}\n$$",
+        "text_format": "latex",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "$D$ 纯量乘法 对任意 $t \\in F$ 和 $\\mathbf { \\delta A } = ( a _ { i j } ) _ { i , j } \\in \\mathrm { M } _ { m \\times n } ( F )$ , 定义",
+        "page_idx": 6
+    },
+    {
+        "type": "equation",
+        "text": "$$\nt \\cdot A = t A : = ( t a _ { i j } ) _ { \\stackrel { 1 \\leq i \\leq m } { 1 \\leq j \\leq n } } .\n$$",
+        "text_format": "latex",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "给定 $\\mid m \\mid$ 和 $n$ , 对应尺寸的零矩阵定义为",
+        "page_idx": 6
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathbf { 0 } _ { m \\times n } : = ( 0 ) _ { i , j } \\in \\mathrm { M } _ { m \\times n } ( F ) .\n$$",
+        "text_format": "latex",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "命题 4.3.2 这些运算使得 $\\mathrm { M } _ { m \\times n } ( F )$ 成为 $F .$ -向量空间. 其中的零元为零矩阵, 而矩阵 $\\pmb { A } = ( a _ { i j } ) _ { i , j }$ 的加法逆元 $- A$ 为 $( - a _ { i j } ) _ { i , j }$ .",
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "证明 理应是明显的. 一切运算性质都对每个矩阵元化约到 $F$ 中来验证.",
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "定义 $m \\times n$ 矩阵的减法为 $\\pmb { A } - \\pmb { B } : = \\pmb { A } + ( - \\pmb { B } )$ , 它的 $( i , j )$ 矩阵元是 $a _ { i j } - b _ { i j }$ .",
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "约定 4.3.3 (行向量与列向量) 对于特例 $n = 1$ , 向量空间 $\\mathrm { M } _ { m \\times 1 } ( F )$ 化约为例 4.2.7讨论的 $F ^ { m }$ ; 出于直观的理由, $\\mathrm { M } _ { m \\times 1 } ( F )$ 的元素也称为 $m$ 维的列向量. 同样道理, 向量空间 $\\operatorname { M } _ { 1 \\times n } ( F )$ 可以等同于 $F ^ { n }$ , 其元素称为 $n$ 维的行向量. 当 $n = m = 1$ , 空间$\\mathrm { M } _ { 1 \\times 1 } ( F )$ 无非就是 $F$ 自身.",
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "作为向量空间, $\\mathrm { M } _ { m \\times n } ( F )$ 和 $F ^ { m n }$ 似乎没有实质区别, 然而矩阵的特色在于除了加法和纯量乘法之外, 它们还具备乘法运算.",
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "定义 4.3.4 (矩阵乘法) 矩阵乘法是按以下方式定义的映射",
+        "page_idx": 7
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\begin{array} { r l } { \\mathrm { M } _ { m \\times n } ( F ) \\times \\mathrm { M } _ { n \\times r } ( F ) \\longrightarrow \\mathrm { M } _ { m \\times r } ( F ) } & { { } } \\\\ { ( A , B ) \\longmapsto } & { { } A B ; } \\end{array}\n$$",
+        "text_format": "latex",
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "若 $\\pmb { A } = ( a _ { i j } ) _ { 1 \\leq i \\leq m }$ , $B = ( b _ { j k } ) _ { \\underline { { { 1 } } } \\underline { { { \\le } } } \\underline { { { j } } } \\underline { { { \\le } } } \\underline { { { n } } } }$ , 则 $A B = ( c _ { i k } ) _ { 1 \\leq i \\leq m }$ , 其中",
+        "page_idx": 7
+    },
+    {
+        "type": "equation",
+        "text": "$$\nc _ { i k } : = \\sum _ { j = 1 } ^ { n } a _ { i j } b _ { j k } = { ( \\begin{array} { l l } { \\ a _ { i 1 } } & { \\cdots \\ a _ { i n } } \\\\ & { \\vdots } \\\\ & { \\nmid { \\tilde { \\mathcal { F } } } i \\ { \\mathrm {  } } } \\end{array} ) } { ( \\begin{array} { l } { \\ b _ { 1 k } } \\\\ { \\vdots } \\\\ { \\ b _ { n k } } \\end{array} ) }\n$$",
+        "text_format": "latex",
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "注意: 只有行数和列数合乎规格的矩阵才能相乘. 按惯例, $A B$ 有时也写成 $A \\cdot B$ .定义 $n$ 阶单位矩阵为",
+        "page_idx": 7
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathbf { 1 } _ { n \\times n } : = \\left( \\begin{array} { l l l l } { 1 } & { } & { } & { } \\\\ { } & { \\ddots } & { } \\\\ { } & { } & { 1 } \\end{array} \\right) \\in \\mathbf { M } _ { n \\times n } ( F )\n$$",
+        "text_format": "latex",
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "其中对角线矩阵元全为 1, 其余留白部分全为 0. 请读者循定义动手验证单位矩阵对所有 $\\pmb { A } \\in \\mathrm { M } _ { m \\times n } ( F )$ 都有类似于乘法幺元的性质:",
+        "page_idx": 7
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\mathbf { 1 } _ { m \\times m } \\cdot \\pmb { A } = \\pmb { A } = \\pmb { A } \\cdot \\mathbf { 1 } _ { n \\times n } .\n$$",
+        "text_format": "latex",
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "命题 4.3.5 矩阵乘法满足以下性质:",
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "$D$ 结合律 $( A B ) C = A ( B C )$ ;  \n$D$ 分配律 $A ( B + C ) = A B + A C , ( B + C ) A = B A + C A ;$   \n$D$ 线性 $A ( t B ) = t ( A B ) = ( t A ) B$ ;  \n其中 $t \\in F$ 和矩阵 $_ { A , B , C }$ 是任意的, 前提是矩阵的行数和列数使运算有意义.",
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "证明 对 $( A B ) C$ 和 $A ( B C )$ 的每个矩阵元进行考察, 可见结合律相当于说",
+        "page_idx": 8
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\sum _ { k } \\left( \\sum _ { j } a _ { i j } b _ { j k } \\right) c _ { k l } = \\sum _ { j } a _ { i j } \\left( \\sum _ { k } b _ { j k } c _ { k l } \\right) ,\n$$",
+        "text_format": "latex",
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "下标 $i , j , k , l$ 的范围取决于矩阵尺寸. 根据求和符号的基本操作, 交换 $\\textstyle \\sum _ { k }$ 和 $\\textstyle \\sum _ { j }$ 以后, 问题归结为证",
+        "page_idx": 8
+    },
+    {
+        "type": "equation",
+        "text": "$$\n( a _ { i j } b _ { j k } ) c _ { k l } = a _ { i j } ( b _ { j k } c _ { k l } ) .\n$$",
+        "text_format": "latex",
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "然而这无非是 $F$ 本身的乘法结合律. 同理, 分配律归结为 $F$ 本身的分配律",
+        "page_idx": 8
+    },
+    {
+        "type": "equation",
+        "text": "$$\na _ { i j } ( b _ { j k } + c _ { j k } ) = a _ { i j } b _ { j k } + a _ { i j } c _ { j k } .\n$$",
+        "text_format": "latex",
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "最后一则性质归结为 $F$ 中的等式 $a _ { i j } ( t b _ { j k } ) = t ( a _ { i j } b _ { j k } ) = ( t a _ { i j } ) b _ { j k }$ , 而这又归结为$F$ 的乘法交换律. □",
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "尽管推论 4.6.3 将包含下述结果, 眼下先就矩阵定义来验证是有益的, 细节也毫无困难.",
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "练习 4.3.6 验证 $\\mathrm { M } _ { n \\times n } ( F )$ 相对于矩阵加法和乘法成环, 它以零矩阵 ${ \\bf 0 } _ { n \\times n }$ 为零元, 以单位矩阵 ${ \\bf { 1 } } _ { n \\times n }$ 为乘法幺元. 提示 前述诸性质的综合.",
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "练习 4.3.7 矩阵给出非交换环的自然例子. 请动手验证以下等式以说明 $\\operatorname { M } _ { 2 \\times 2 } ( F )$ 并非交换环.",
+        "page_idx": 8
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\begin{array} { r l } & { \\left( \\begin{array} { l l } { 0 } & { 1 } \\\\ { 1 } & { 0 } \\end{array} \\right) \\left( \\begin{array} { l l } { 1 } & { 1 } \\\\ { 0 } & { 1 } \\end{array} \\right) = \\left( \\begin{array} { l l } { 0 } & { 1 } \\\\ { 1 } & { 1 } \\end{array} \\right) , } \\\\ & { \\left( \\begin{array} { l l } { 1 } & { 1 } \\\\ { 0 } & { 1 } \\end{array} \\right) \\left( \\begin{array} { l l } { 0 } & { 1 } \\\\ { 1 } & { 0 } \\end{array} \\right) = \\left( \\begin{array} { l l } { 1 } & { 1 } \\\\ { 1 } & { 0 } \\end{array} \\right) . } \\end{array}\n$$",
+        "text_format": "latex",
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "注记 4.3.8 (环上的矩阵) 如果将域 $F$ 换成一般的环 $R$ , 则以上定义和大部分性质仍然通行无阻; 特别地, 我们有集合 $\\mathrm { M } _ { m \\times n } ( R )$ 以及矩阵之间的加法和乘法, 并且使$\\mathrm { M } _ { n \\times n } ( R )$ 成环. 唯一成问题的是命题 4.3.5 的等式 $\\pmb { A } ( t \\pmb { B } ) = t ( \\pmb { A } \\pmb { B } )$ (其中 $t \\in R$ ): 从证明不难看出, 障碍在于 $t \\in R$ 对乘法未必能和 $R$ 中的其他元素交换. 如果我们要求$R$ 是交换环, 则 $A ( t B ) = t ( A B ) = ( t A ) B$ 仍然成立.",
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "此外, 在非交换环上必须区别 $t \\in R$ 对矩阵的左乘 $^ { t A }$ 和右乘 $\\mathbf { \\nabla } _ { \\mathbf { } } A t _ { \\mathbf { \\nabla } }$ .",
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "一如 $\\ S 1 . 3$ 所述, 线性方程组的布列和消元在一般的域 $F$ 上也能用 $F$ 上的矩阵来表述. 矩阵乘法还给出考量线性方程组的另一种视角: 对于取在 $F$ 中的变元 $X _ { 1 } , \\ldots , X _ { n }$ ,我们有",
+        "page_idx": 9
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\left\\{ \\begin{array} { r l } { a _ { 1 1 } X _ { 1 } + \\cdots + a _ { 1 n } X _ { n } } & { = b _ { 1 } } \\\\ { a _ { 2 1 } X _ { 1 } + \\cdots + a _ { 2 n } X _ { n } } & { = b _ { 2 } } \\\\ { \\vdots \\qquad \\vdots \\qquad \\vdots } \\\\ { a _ { m 1 } X _ { 1 } + \\cdots + a _ { m n } X _ { n } } & { = b _ { m } } \\end{array} \\right. \\iff \\left( \\begin{array} { c c c } { a _ { 1 1 } } & { \\cdots } & { a _ { 1 n } } \\\\ { \\vdots } & { \\ddots } & { \\vdots } \\\\ { a _ { m 1 } } & { \\cdots } & { a _ { m n } } \\end{array} \\right) \\left( \\begin{array} { c } { X _ { 1 } } \\\\ { \\vdots } \\\\ { X _ { n } } \\end{array} \\right) = \\left( \\begin{array} { c } { b _ { 1 } } \\\\ { \\vdots } \\\\ { b _ { m } } \\end{array} \\right) .\n$$",
+        "text_format": "latex",
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "取方程组的系数矩阵 $\\begin{array} { r } { \\pmb { A } : = ( a _ { i j } ) _ { i , j } \\in \\mathrm { M } _ { m \\times n } ( F ) } \\end{array}$ , 并且定义列向量",
+        "page_idx": 9
+    },
+    {
+        "type": "equation",
+        "text": "$$\n\\begin{array} { r } { \\boldsymbol { x } : = \\left( \\begin{array} { c } { X _ { 1 } } \\\\ { \\vdots } \\\\ { X _ { n } } \\end{array} \\right) , \\quad \\boldsymbol { b } : = \\left( \\begin{array} { c } { b _ { 1 } } \\\\ { \\vdots } \\\\ { b _ { m } } \\end{array} \\right) , } \\end{array}\n$$",
+        "text_format": "latex",
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "则原方程组等价于以 $\\mathbf { \\Psi } _ { \\pmb { x } }$ 为变量的矩阵方程",
+        "page_idx": 9
+    },
+    {
+        "type": "equation",
+        "text": "$$\nA x = b .\n$$",
+        "text_format": "latex",
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "这是矩阵乘法和线性方程组的直接联系, 矩阵写法显然胜在简洁, 而这也为矩阵乘法的定义提供了一部分的解释.",
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "我们更愿意从线性映射的视角理解矩阵. 一旦在 $\\ S 4 . 5$ 明确了矩阵和线性映射的关系, 则无论是命题 4.3.5 的矩阵乘法性质, 练习 4.3.6 或线性方程组的矩阵写法 $\\mathbf { A } { \\boldsymbol { x } } = \\mathbf { 0 }$ 都会得到自然的诠释. 在此之前, 有必要先引进基和维数的抽象概念.",
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "4.4 基和维数",
+        "text_level": 1,
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "对于经典的平面向量或空间向量, 我们熟知一旦选定坐标系, 所有向量都能按坐标唯一地展开. 将此思路扩及一般的向量空间, 就引向了基的概念.",
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "向量空间的基并不唯一, 通常也没有标准的取法. 在许多应用中3), 适当选基, 自由换基还是解决问题的关键手段. 阐明基与基之间如何变换是稍后的重要任务.",
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "严谨的解释需要一系列的准备工作. 设 $S$ 为 $F .$ -向量空间 $V$ 的子集, 或有限或无穷. 我们称形如",
+        "page_idx": 9
+    },
+    {
+        "type": "equation",
+        "text": "$$\na _ { 1 } v _ { 1 } + \\cdots + a _ { m } v _ { m } , \\qquad a _ { i } \\in { \\mathbb { F } } ,\n$$",
+        "text_format": "latex",
+        "page_idx": 9
+    }
+]
