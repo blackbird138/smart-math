@@ -1,7 +1,7 @@
 <template>
   <div class="upload-view">
     <input type="file" @change="onChange" />
-    <button @click="upload">上传</button>
+    <button @click="upload" :disabled="isUploading">上传</button>
     <div v-if="isUploading" class="loading">上传中...</div>
     <p v-if="success">上传成功，ID: {{ success }}</p>
     <pdf-embed v-if="previewUrl" :source="previewUrl" style="width: 100%; height: 60vh;" />
