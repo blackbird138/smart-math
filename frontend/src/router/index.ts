@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import UploadView from '../views/UploadView.vue'
 import SearchView from '../views/SearchView.vue'
 import DocumentView from '../views/DocumentView.vue'
+import ChunkGraphView from '../views/ChunkGraphView.vue'
 
 const routes = [
   {
@@ -24,6 +25,11 @@ const routes = [
     path: '/document/:id',
     name: 'document',
     component: DocumentView
+  },
+  {
+    path: '/chunks',
+    name: 'chunks',
+    component: ChunkGraphView
   }
 ]
 
