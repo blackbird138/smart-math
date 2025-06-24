@@ -1,4 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from pydantic import BaseModel
+from dotenv import set_key
+import os
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from tempfile import NamedTemporaryFile
@@ -36,6 +39,24 @@ with open(Path("config") / "agent_config.yaml", "r", encoding="utf-8") as f:
 # 按文件缓存对应的索引管理器及切片内容
 file_managers: dict[str, RetrieverManager] = {}
 file_docs: dict[str, list[ParagraphChunk]] = {}
+
+
+class EnvUpdate(BaseModel):
+    SILICONFLOW_API_KEY: str | None = None
+    OPENAI_COMPATIBILITY_API_KEY: str | None = None
+
+
+@app.post("/update_env")
+async def update_env(data: EnvUpdate):
+    """更新服务器环境变量并写入 .env 文件"""
+    env_file = Path(".env")
+    if data.SILICONFLOW_API_KEY is not None:
+        os.environ["SILICONFLOW_API_KEY"] = data.SILICONFLOW_API_KEY
+        set_key(str(env_file), "SILICONFLOW_API_KEY", data.SILICONFLOW_API_KEY)
+    if data.OPENAI_COMPATIBILITY_API_KEY is not None:
+        os.environ["OPENAI_COMPATIBILITY_API_KEY"] = data.OPENAI_COMPATIBILITY_API_KEY
+        set_key(str(env_file), "OPENAI_COMPATIBILITY_API_KEY", data.OPENAI_COMPATIBILITY_API_KEY)
+    return {"status": "ok"}
 
 @app.post("/ingest")
 async def ingest(file: UploadFile = File(...)):
