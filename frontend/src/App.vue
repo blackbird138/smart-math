@@ -24,7 +24,17 @@
 </template>
 
 <script setup lang="ts">
+import { watch } from 'vue'
+import { useRoute } from 'vue-router'
 import PdfViewer from './components/PdfViewer.vue'
+import { useViewerStore } from './stores/viewer'
+
+const route = useRoute()
+const viewer = useViewerStore()
+
+watch(() => route.fullPath, () => {
+  viewer.setFile('')
+})
 </script>
 
 <style>
