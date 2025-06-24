@@ -22,9 +22,9 @@ class GraphBuilder:
         self.top_k = top_k
         self.base_dir = Path(base_dir)
 
-    def _build_pairs(self, chunks: List[ParagraphChunk]) -> List[tuple[str, str, float]]:
+    def _build_pairs(self, file_id: str, chunks: List[ParagraphChunk]) -> List[tuple[str, str, float]]:
         ids = [c.id for c in chunks]
-        pairs = list(self.retriever.topk_pairs(ids))
+        pairs = list(self.retriever.topk_pairs(file_id, ids))
         if not pairs:
             return []
 
@@ -38,7 +38,7 @@ class GraphBuilder:
         ranked = sorted(zip(pairs, scores), key=lambda x: x[1], reverse=True)
         return [(h, t, s) for (h, t, _), s in ranked[: self.top_k]]
 
-    def build_relations(self, chunks: List[ParagraphChunk]) -> List[dict]:
+    def build_relations(self, file_id: str, chunks: List[ParagraphChunk]) -> List[dict]:
         if not chunks:
             return []
         chunk_texts: Dict[str, str] = {}
@@ -46,7 +46,7 @@ class GraphBuilder:
             text = c.page_content if isinstance(c.page_content, str) else "\n".join(c.page_content)
             chunk_texts[c.id] = text
 
-        candidate_pairs = self._build_pairs(chunks)
+        candidate_pairs = self._build_pairs(file_id, chunks)
         if not candidate_pairs:
             return []
         return self.relation_builder.build_relations(chunk_texts, candidate_pairs)
@@ -58,9 +58,9 @@ class GraphBuilder:
         with path.open("w", encoding="utf-8") as f:
             json.dump(relations, f, ensure_ascii=False, indent=2)
 
-    def build_and_save(self, chunks: List[ParagraphChunk]) -> List[dict]:
-        relations = self.build_relations(chunks)
+    def build_and_save(self, file_id: str, chunks: List[ParagraphChunk]) -> List[dict]:
+        relations = self.build_relations(file_id, chunks)
         if relations:
-            file_id = chunks[0].metadata.get("file_id", "default")
-            self.save_relations(file_id, relations)
+            new_file_id = chunks[0].metadata.get("file_id", "default")
+            self.save_relations(new_file_id, relations)
         return relations

@@ -51,7 +51,7 @@ async def ingest(file: UploadFile = File(...)):
     file_docs[file_id] = docs
 
     # 保存切片以便后续构建关系图
-    save_dir = Path("data") / file_id
+    save_dir = Path("data/relation_store") / file_id
     save_dir.mkdir(parents=True, exist_ok=True)
     with (save_dir / "chunks.json").open("w", encoding="utf-8") as f:
         json.dump([c.to_json() for c in docs], f, ensure_ascii=False, indent=2)
@@ -106,7 +106,7 @@ async def build_graph(file_id: str, top_k: int = 5):
 
     chunks = file_docs.get(file_id)
     if chunks is None:
-        chunks_path = Path("data") / file_id / "chunks.json"
+        chunks_path = Path("data/relation_store") / file_id / "chunks.json"
         if not chunks_path.exists():
             raise HTTPException(status_code=404, detail="chunks not found")
         with chunks_path.open("r", encoding="utf-8") as f:
@@ -119,9 +119,9 @@ async def build_graph(file_id: str, top_k: int = 5):
         PairReranker(),
         RelationBuilder(agent_cfg),
         top_k=top_k,
-        base_dir="data",
+        base_dir="data/relation_store",
     )
-    relations = gb.build_and_save(chunks)
+    relations = gb.build_and_save(file_id, chunks)
     return {"relations": relations}
 
 @app.get("/list_chunks")
@@ -129,7 +129,7 @@ async def list_chunks(file_id: str):
     """列出指定文件的所有已处理 chunk"""
     chunks = file_docs.get(file_id)
     if chunks is None:
-        path = Path("data") / file_id / "chunks.json"
+        path = Path("data/relation_store") / file_id / "chunks.json"
         if not path.exists():
             raise HTTPException(status_code=404, detail="chunks not found")
         with path.open("r", encoding="utf-8") as f:
@@ -144,7 +144,7 @@ async def list_chunks(file_id: str):
 @app.get("/list_related")
 async def list_related(file_id: str, chunk_id: str):
     """列出与指定 chunk 相关的所有 chunk"""
-    rel_path = Path("data") / file_id / "relations.json"
+    rel_path = Path("data/relation_store") / file_id / "relations.json"
     if not rel_path.exists():
         # 若关系文件不存在则尝试构建
         await build_graph(file_id)
@@ -156,7 +156,7 @@ async def list_related(file_id: str, chunk_id: str):
     ]
     chunks = file_docs.get(file_id)
     if chunks is None:
-        path = Path("data") / file_id / "chunks.json"
+        path = Path("data/relation_store") / file_id / "chunks.json"
         if not path.exists():
             raise HTTPException(status_code=404, detail="chunks not found")
         with path.open("r", encoding="utf-8") as f:
@@ -175,4 +175,3 @@ async def list_related(file_id: str, chunk_id: str):
                 "relation_summary": rel.get("summary", "")
             })
     return {"related": result}
-

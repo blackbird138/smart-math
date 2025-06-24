@@ -35,11 +35,11 @@ class RetrieverManager:
         # 转换输出格式
         return hits
 
-    def topk_pairs(self, ids: list[str]) -> set[tuple[str,str,float]]:
+    def topk_pairs(self, file_id : str, ids: list[str]) -> set[tuple[str,str,float]]:
         pairs = set()
         for pid in ids:
             res = self.store.client.search(
-                collection_name="smart_math",
+                collection_name=file_id,
                 query_vector={"id": pid},
                 limit=self.top_k,
                 with_payload=False,

@@ -4,8 +4,6 @@ import json
 import yaml
 import pytest
 
-# Skip heavy RAG tests in lightweight environments
-pytest.skip("skip heavy rag tests", allow_module_level=True)
 from pathlib import Path
 from src.rag.embedding import EmbeddingManager
 from src.rag.retriever import RetrieverManager

@@ -3,8 +3,6 @@
 import json
 import pytest
 
-# Skip tests if optional dependencies are missing
-pytest.skip("skip heavy preprocessing tests", allow_module_level=True)
 from pathlib import Path
 from src.preprocessing.cleaner import clean_documents
 from src.preprocessing.filterer import chunk_and_filter

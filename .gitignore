@@ -219,9 +219,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,windows,visualstudiocode
-/data/vector_store/.lock
-/data/9ce9915b71f44b0a8d1c8725746e11d4.pdf
-/data/vector_store/meta.json
-/data/vector_store/collection/test/storage.sqlite
-/data/mineru/tmpcozesljn_content_list.json
-/.idea/workspace.xml
+data_source/
