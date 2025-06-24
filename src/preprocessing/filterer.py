@@ -29,11 +29,12 @@ FILTER_SCHEMA = {
     "type": "array",
     "items": {
         "type": "object",
-        "required": ["state_code", "content", "summary"],
+        "required": ["state_code", "content", "summary", "number"],
         "properties": {
             "state_code": {"type": "string"},
             "content": {"type": "string"},
             "summary": {"type": "string"},
+            "number": {"type": "string"},
         },
     },
 }
@@ -55,6 +56,7 @@ sys_msg = BaseMessage.make_assistant_message(
            a. 将 `content` 置为符合要求的那个 page_content 的前缀。
            b. 讲 `summary` 置为该 chunk 内容的一句话（一个短词）总结。
            c. 将 `state_code` 置为 "001"。
+           d. 若 chunk 标题中包含编号（如 "定理 4.1.3"），提取编号（如 "4.1.3"）填入 `number` 字段；否则 `number` 置为空字符串。
         3. 如果判断为真，但 page_content 有缺失的内容：
            a. 将 `content` 和 `summary` 置为空字符串。
            b. 将 `state_code` 置为 "002"。
@@ -144,6 +146,7 @@ def filter_and_convert(chunks: List[ParagraphChunk]) -> (List[ParagraphChunk], L
                 metadata=chunk.metadata
             )
             new_chunk.metadata["summary"] = item["summary"]
+            new_chunk.metadata["number"] = item.get("number", "")
             results.append(new_chunk)
         elif item["state_code"] == "002":
             faild_chunks.append(ParagraphChunk(

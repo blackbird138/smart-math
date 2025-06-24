@@ -31,7 +31,11 @@
         :value="c.id"
       >
         <template #title>
-          <strong>{{ displayChunkType(c.chunk_type) }}: {{ c.summary || c.content.slice(0, 50) + '...' }}</strong>
+          <strong>
+            {{ displayChunkType(c.chunk_type) }}
+            <template v-if="c.number"> {{ c.number }}</template>
+            : {{ c.summary || c.content.slice(0, 50) + '...' }}
+          </strong>
         </template>
         <template #text>
           <div v-html="renderMarkdown(c.content)" />

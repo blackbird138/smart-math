@@ -162,25 +162,24 @@ async def list_chunks(file_id: str, chunk_type: str | None = None):
             json_list = json.load(f)
             chunks = [ParagraphChunk.from_json(s) for s in json_list]
         file_docs[file_id] = chunks
+
     if chunk_type:
         allow = {t.strip().lower() for t in chunk_type.split(",") if t}
         chunks = [
             c for c in chunks if c.metadata.get("chunk_type", "").lower() in allow
         ]
 
-    return {
-        "chunks": [
-            {
-                "id": c.id,
-                "summary": c.metadata.get("summary", ""),
-                "content": c.page_content,
-                "chunk_type": c.metadata.get("chunk_type", ""),
-                "page_num": c.metadata.get("page_num"),
-            }
-            for c in chunks
-        ]
-    }
-
+    return {"chunks": [
+        {
+            "id": c.id,
+            "summary": c.metadata.get("summary", ""),
+            "content": c.page_content,
+            "chunk_type": c.metadata.get("chunk_type", ""),
+            "page_num": c.metadata.get("page_num"),
+            "number": c.metadata.get("number", "")
+        }
+        for c in chunks
+    ]}
 
 @app.get("/list_related")
 async def list_related(file_id: str, chunk_id: str):
@@ -216,6 +215,7 @@ async def list_related(file_id: str, chunk_id: str):
                 "relation": rel.get("relation_type", ""),
                 "relation_summary": rel.get("summary", ""),
                 "chunk_type": c.metadata.get("chunk_type", ""),
-                "page_num": c.metadata.get("page_num")
+                "page_num": c.metadata.get("page_num"),
+                "number": c.metadata.get("number", "")
             })
     return {"related": result}
