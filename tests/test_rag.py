@@ -4,6 +4,8 @@ import json
 import yaml
 import pytest
 
+pytest.skip("requires qdrant and model setup", allow_module_level=True)
+
 from pathlib import Path
 from src.rag.embedding import EmbeddingManager
 from src.rag.retriever import RetrieverManager
@@ -14,6 +16,7 @@ SAVE_DIR = Path(__file__).parent / "data" / "chunks_filtered.json"
 
 with open("../config/rag_config.yaml", "r", encoding="utf-8") as f:
     cfg = yaml.safe_load(f)
+
 
 def test_chunk_and_clean_and_filter():
     with DATA_DIR.open("r", encoding="utf-8") as f:

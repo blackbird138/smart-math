@@ -40,11 +40,9 @@ with open(Path("config") / "agent_config.yaml", "r", encoding="utf-8") as f:
 file_managers: dict[str, RetrieverManager] = {}
 file_docs: dict[str, list[ParagraphChunk]] = {}
 
-
 class EnvUpdate(BaseModel):
     SILICONFLOW_API_KEY: str | None = None
     OPENAI_COMPATIBILITY_API_KEY: str | None = None
-
 
 @app.post("/update_env")
 async def update_env(data: EnvUpdate):
@@ -85,6 +83,7 @@ async def ingest(file: UploadFile = File(...)):
 
     shutil.move(tmp_path, Path("data") / f"{file_id}.pdf")
     return {"indexed": len(docs), "file_id": file_id}
+
 
 @app.get("/search")
 async def search(q: str, file_id: str, top_k: int = 5):
@@ -146,9 +145,14 @@ async def build_graph(file_id: str, top_k: int = 5):
     relations = gb.build_and_save(chunks)
     return {"relations": relations}
 
+
 @app.get("/list_chunks")
-async def list_chunks(file_id: str):
-    """列出指定文件的所有已处理 chunk"""
+async def list_chunks(file_id: str, chunk_type: str | None = None):
+    """列出指定文件的所有已处理 chunk
+
+    :param file_id: 目标文件 ID
+    :param chunk_type: 以逗号分隔的 chunk 类型，可选
+    """
     chunks = file_docs.get(file_id)
     if chunks is None:
         path = Path("data/relation_store") / file_id / "chunks.json"
@@ -158,6 +162,13 @@ async def list_chunks(file_id: str):
             json_list = json.load(f)
             chunks = [ParagraphChunk.from_json(s) for s in json_list]
         file_docs[file_id] = chunks
+
+    if chunk_type:
+        allow = {t.strip().lower() for t in chunk_type.split(",") if t}
+        chunks = [
+            c for c in chunks if c.metadata.get("chunk_type", "").lower() in allow
+        ]
+
     return {"chunks": [
         {
             "id": c.id,
@@ -181,7 +192,8 @@ async def list_related(file_id: str, chunk_id: str):
         relations = json.load(f)
     related_ids = [
         (r["tail"] if r["head"] == chunk_id else r["head"], r)
-        for r in relations if r["head"] == chunk_id or r["tail"] == chunk_id
+        for r in relations
+        if r["head"] == chunk_id or r["tail"] == chunk_id
     ]
     chunks = file_docs.get(file_id)
     if chunks is None:
