@@ -9,7 +9,7 @@ from pydantic import BaseModel, ValidationError, RootModel
 from jsonschema import validate
 from camel.agents import ChatAgent
 from camel.models import ModelFactory
-from camel.types import ModelPlatformType
+from camel.types import ModelPlatformType, OpenAIBackendRole
 from camel.messages import BaseMessage
 from src.datamodel import ParagraphChunk
 from src.preprocessing.chunker import chunk_documents, detect_header_type
@@ -65,25 +65,22 @@ sys_msg = BaseMessage.make_assistant_message(
            b. 将 `state_code` 置为 "003"。
         最终输出一个 JSON 列表。
         """
-    )
+    ),
 )
 
 # 4. 初始化 ChatAgent
 enc = tiktoken.get_encoding("cl100k_base")
-CTX_LIMIT = agent_cfg["model_config"]["max_tokens"]        # 模型上下文
-SAFETY    = 1024              # 给输出留余量
+CTX_LIMIT = agent_cfg["model_config"]["max_tokens"]  # 模型上下文
+SAFETY = 1024  # 给输出留余量
 
-response_format={
+response_format = {
     "type": "json_schema",
     "json_schema": {
         "name": "ChunkFilterResults",
-        "schema": FILTER_SCHEMA
-    }
+        "schema": FILTER_SCHEMA,
+    },
 }
 
-agent_cfg["model_config"].update({
-    "response_format": response_format
-})
 
 model = ModelFactory.create(
     model_platform=ModelPlatformType[agent_cfg["model_platform"]],
@@ -97,35 +94,61 @@ agent = ChatAgent(
     output_language="中文",
 )
 
+
 # 5. 批量过滤与转换函数
 def _tok(s: str) -> int:
     return len(enc.encode(s))
 
-def build_batches(items, limit=CTX_LIMIT-SAFETY):
+
+def build_batches(items, limit=CTX_LIMIT - SAFETY):
     cur, cur_tok, out = [], 0, []
     for it in items:
         t = _tok(json.dumps(it, ensure_ascii=False))
         if cur and cur_tok + t > limit:
-            out.append(cur); cur, cur_tok = [], 0
-        cur.append(it); cur_tok += t
-    if cur: out.append(cur)
-    return out          # [[dict, ...], [dict, ...], ...]
+            out.append(cur)
+            cur, cur_tok = [], 0
+        cur.append(it)
+        cur_tok += t
+    if cur:
+        out.append(cur)
+    return out  # [[dict, ...], [dict, ...], ...]
+
 
 def llm_call(batch):
     prompt = "\n\n输入数据：\n" + json.dumps(batch, ensure_ascii=False)
-    user   = BaseMessage.make_user_message("chunk_provider", prompt)
+    user = BaseMessage.make_user_message("chunk_provider", prompt)
+
+    messages = [
+        sys_msg.to_openai_message(OpenAIBackendRole.SYSTEM),
+        user.to_openai_message(OpenAIBackendRole.USER),
+    ]
+    messages = model.preprocess_messages(messages)
+
+    request_cfg = agent_cfg["model_config"].copy()
+    request_cfg["response_format"] = response_format
+    request_cfg.pop("stream", None)
+
     @backoff.on_exception(backoff.expo, Exception, max_tries=3)
     def _step():
-        return agent.step(user).msgs[0].content
-    return json.loads(_step())      # ⇐ 保证返回 python 对象
+        rsp = model._client.chat.completions.create(
+            messages=messages,
+            model=model.model_type,
+            **request_cfg,
+        )
+        return rsp.choices[0].message.content
+
+    return json.loads(_step())  # ⇐ 保证返回 python 对象
+
 
 def filter_and_convert(chunks: List[ParagraphChunk]) -> (List[ParagraphChunk], List[ParagraphChunk]):
     pure_chunks = []
     for chunk in chunks:
-        pure_chunks.append({
-            "chunk_type": chunk.metadata["chunk_type"],
-            "page_content": chunk.page_content,
-        })
+        pure_chunks.append(
+            {
+                "chunk_type": chunk.metadata["chunk_type"],
+                "page_content": chunk.page_content,
+            }
+        )
 
     batches = build_batches(pure_chunks)  # 先按 token 切批
     candidate_list = []
@@ -140,24 +163,17 @@ def filter_and_convert(chunks: List[ParagraphChunk]) -> (List[ParagraphChunk], L
     results, faild_chunks = [], []
     for item, chunk in zip(candidate_list, chunks):
         if item["state_code"] == "001":
-            new_chunk = ParagraphChunk(
-                id=chunk.id,
-                page_content=item["content"],
-                metadata=chunk.metadata
-            )
+            new_chunk = ParagraphChunk(id=chunk.id, page_content=item["content"], metadata=chunk.metadata)
             new_chunk.metadata["summary"] = item["summary"]
             new_chunk.metadata["number"] = item.get("number", "")
             results.append(new_chunk)
         elif item["state_code"] == "002":
-            faild_chunks.append(ParagraphChunk(
-                id=chunk.id,
-                page_content=chunk.page_content,
-                metadata=chunk.metadata
-            ))
+            faild_chunks.append(ParagraphChunk(id=chunk.id, page_content=chunk.page_content, metadata=chunk.metadata))
 
     return results, faild_chunks
 
-def chunk_and_filter(docs: List[ParagraphChunk], TOKEN_LIM: int=500, FAILD_LIM: int=2000) -> List[ParagraphChunk]:
+
+def chunk_and_filter(docs: List[ParagraphChunk], TOKEN_LIM: int = 500, FAILD_LIM: int = 2000) -> List[ParagraphChunk]:
     chunks = chunk_documents(docs, MAX_TOKEN=TOKEN_LIM)
     docs_dict = {doc.id: (doc, index) for index, doc in enumerate(docs)}
 
@@ -168,18 +184,16 @@ def chunk_and_filter(docs: List[ParagraphChunk], TOKEN_LIM: int=500, FAILD_LIM: 
         target_chunk, target_index = docs_dict.get(chunk.metadata["initial_id"])
         buf_text = [target_chunk.page_content]
         tok_cnt = len(target_chunk.page_content)
-        for next_chunk in docs[target_index + 1:]:
+        for next_chunk in docs[target_index + 1 :]:
             if detect_header_type(next_chunk.page_content):
                 break
             if tok_cnt > FAILD_LIM:
                 break
             buf_text.append(next_chunk.page_content)
             tok_cnt += len(next_chunk.page_content)
-        retry_chunks.append(ParagraphChunk(
-            id=chunk.id,
-            page_content="\n".join(buf_text).strip(),
-            metadata=chunk.metadata
-        ))
+        retry_chunks.append(
+            ParagraphChunk(id=chunk.id, page_content="\n".join(buf_text).strip(), metadata=chunk.metadata)
+        )
 
     _result, _faild_chunks = filter_and_convert(retry_chunks)
 
