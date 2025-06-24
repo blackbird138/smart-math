@@ -6,8 +6,9 @@
       <v-btn to="/" variant="text">首页</v-btn>
       <v-btn to="/upload" variant="text">上传</v-btn>
       <v-btn to="/search" variant="text">搜索</v-btn>
-      <v-btn to="/chunks" variant="text">Chunk 图</v-btn>
+      <v-btn to="/chunks" variant="text">内容</v-btn>
       <v-btn to="/settings" variant="text">设置</v-btn>
+
     </v-app-bar>
     <v-main>
       <v-container fluid class="d-flex">
