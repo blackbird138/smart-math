@@ -4,12 +4,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from tempfile import NamedTemporaryFile
 from pathlib import Path
 import shutil
+import json
 import yaml
 from src.loaders.mineru_loader import load_json_by_mineru
 from src.preprocessing.cleaner import clean_documents
 from src.preprocessing.filterer import chunk_and_filter
 from src.rag.embedding import EmbeddingManager
 from src.rag.retriever import RetrieverManager
+from src.graph import GraphBuilder
+from src.graph.pair_reranker import PairReranker
+from src.graph.relation_builder import RelationBuilder
+from src.datamodel import ParagraphChunk
 
 app = FastAPI()
 
@@ -22,12 +27,15 @@ app.add_middleware(
 
 app.mount("/files", StaticFiles(directory="data"), name="files")
 
-# 加载 RAG 配置
+# 加载 RAG 与 Agent 配置
 with open(Path("config") / "rag_config.yaml", "r", encoding="utf-8") as f:
     cfg = yaml.safe_load(f)
+with open(Path("config") / "agent_config.yaml", "r", encoding="utf-8") as f:
+    agent_cfg = yaml.safe_load(f)
 
-# 按文件缓存对应的索引管理器
+# 按文件缓存对应的索引管理器及切片内容
 file_managers: dict[str, RetrieverManager] = {}
+file_docs: dict[str, list[ParagraphChunk]] = {}
 
 @app.post("/ingest")
 async def ingest(file: UploadFile = File(...)):
@@ -40,6 +48,13 @@ async def ingest(file: UploadFile = File(...)):
     file_id, docs = load_json_by_mineru(tmp_path)
     docs = clean_documents(docs)
     docs = chunk_and_filter(docs)
+    file_docs[file_id] = docs
+
+    # 保存切片以便后续构建关系图
+    save_dir = Path("data") / file_id
+    save_dir.mkdir(parents=True, exist_ok=True)
+    with (save_dir / "chunks.json").open("w", encoding="utf-8") as f:
+        json.dump([c.to_json() for c in docs], f, ensure_ascii=False, indent=2)
 
     # 构建针对该文件的向量索引
     emb_mgr = EmbeddingManager(cfg["embedding"], file_id)
@@ -74,3 +89,37 @@ async def list_files():
     """返回 data 目录下已上传的文件列表"""
     ids = [p.stem for p in Path("data").glob("*.pdf")]
     return {"files": ids}
+
+
+@app.post("/build_graph")
+async def build_graph(file_id: str, top_k: int = 5):
+    """构建指定文件的关系图并保存"""
+    retr = file_managers.get(file_id)
+    if retr is None:
+        emb_mgr = EmbeddingManager(cfg["embedding"], file_id)
+        try:
+            emb_mgr.storage.status()
+        except Exception:
+            raise HTTPException(status_code=404, detail="file_id not found")
+        retr = RetrieverManager(emb_mgr, cfg["retriever"])
+        file_managers[file_id] = retr
+
+    chunks = file_docs.get(file_id)
+    if chunks is None:
+        chunks_path = Path("data") / file_id / "chunks.json"
+        if not chunks_path.exists():
+            raise HTTPException(status_code=404, detail="chunks not found")
+        with chunks_path.open("r", encoding="utf-8") as f:
+            json_list = json.load(f)
+            chunks = [ParagraphChunk.from_json(s) for s in json_list]
+        file_docs[file_id] = chunks
+
+    gb = GraphBuilder(
+        retr,
+        PairReranker(),
+        RelationBuilder(agent_cfg),
+        top_k=top_k,
+        base_dir="data",
+    )
+    relations = gb.build_and_save(chunks)
+    return {"relations": relations}
