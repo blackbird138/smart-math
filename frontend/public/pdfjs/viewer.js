@@ -1631,7 +1631,14 @@ const PDFViewerApplication = {
 };
 exports.PDFViewerApplication = PDFViewerApplication;
 {
-  const HOSTED_VIEWER_ORIGINS = ["null", "http://mozilla.github.io", "https://mozilla.github.io"];
+  const HOSTED_VIEWER_ORIGINS = [
+    "null",
+    "http://mozilla.github.io",
+    "https://mozilla.github.io",
+    // Allow local development server
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+  ];
   var validateFileURL = function (file) {
     if (!file) {
       return;
