@@ -123,3 +123,55 @@ async def build_graph(file_id: str, top_k: int = 5):
     )
     relations = gb.build_and_save(chunks)
     return {"relations": relations}
+
+@app.get("/list_chunks")
+async def list_chunks(file_id: str):
+    """列出指定文件的所有已处理 chunk"""
+    chunks = file_docs.get(file_id)
+    if chunks is None:
+        path = Path("data") / file_id / "chunks.json"
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="chunks not found")
+        with path.open("r", encoding="utf-8") as f:
+            json_list = json.load(f)
+            chunks = [ParagraphChunk.from_json(s) for s in json_list]
+        file_docs[file_id] = chunks
+    return {"chunks": [
+        {"id": c.id, "summary": c.metadata.get("summary", ""), "content": c.page_content}
+        for c in chunks
+    ]}
+
+@app.get("/list_related")
+async def list_related(file_id: str, chunk_id: str):
+    """列出与指定 chunk 相关的所有 chunk"""
+    rel_path = Path("data") / file_id / "relations.json"
+    if not rel_path.exists():
+        raise HTTPException(status_code=404, detail="relations not found")
+    with rel_path.open("r", encoding="utf-8") as f:
+        relations = json.load(f)
+    related_ids = [
+        (r["tail"] if r["head"] == chunk_id else r["head"], r)
+        for r in relations if r["head"] == chunk_id or r["tail"] == chunk_id
+    ]
+    chunks = file_docs.get(file_id)
+    if chunks is None:
+        path = Path("data") / file_id / "chunks.json"
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="chunks not found")
+        with path.open("r", encoding="utf-8") as f:
+            json_list = json.load(f)
+            chunks = [ParagraphChunk.from_json(s) for s in json_list]
+        file_docs[file_id] = chunks
+    id_map = {c.id: c for c in chunks}
+    result = []
+    for cid, rel in related_ids:
+        c = id_map.get(cid)
+        if c:
+            result.append({
+                "id": c.id,
+                "summary": c.metadata.get("summary", ""),
+                "relation": rel.get("relation_type", ""),
+                "relation_summary": rel.get("summary", "")
+            })
+    return {"related": result}
+
