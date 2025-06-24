@@ -21,7 +21,7 @@
         :value="c.id"
       >
         <template #title>
-          <strong>{{ c.chunk_type }}: {{ c.summary || c.content.slice(0, 50) + '...' }}</strong>
+          <strong>{{ displayChunkType(c.chunk_type) }}: {{ c.summary || c.content.slice(0, 50) + '...' }}</strong>
         </template>
         <template #text>
           <div v-html="renderMarkdown(c.content)" />
@@ -31,14 +31,18 @@
             </v-btn>
           </div>
           <div class="mt-4">
-            <h4>相关内容</h4>
+            <h4>相关词条</h4>
             <v-progress-circular indeterminate v-if="related[c.id]?.loading" />
-            <v-list v-else>
-              <v-list-item v-for="r in related[c.id]?.items" :key="r.id">
-                {{ r.chunk_type }}: {{ r.summary || r.id }}
-                <span v-if="r.relation"> ({{ r.relation }})</span>
-              </v-list-item>
-            </v-list>
+            <v-expansion-panels v-else multiple>
+              <v-expansion-panel v-for="r in related[c.id]?.items" :key="r.id">
+                <template #title>
+                  <strong>{{ r.relation }}: {{ r.summary || r.id }}</strong>
+                </template>
+                <template #text>
+                  <div>{{ r.relation_summary }}</div>
+                </template>
+              </v-expansion-panel>
+            </v-expansion-panels>
           </div>
         </template>
       </v-expansion-panel>
@@ -54,6 +58,7 @@ import markdownItMathTemml from 'markdown-it-math/temml'
 import DOMPurify from 'dompurify'
 import { API_BASE } from '../api'
 import { useViewerStore } from '../stores/viewer'
+import { displayChunkType } from '../utils'
 
 const files = ref<string[]>([])
 const selectedFile = ref('')

@@ -16,7 +16,7 @@
       <v-expansion-panel v-for="(item, i) in results" :key="i" elevation="2" class="mb-2">
         <template #title>
           <div class="panel-title">
-            <strong>{{ item.metadata.chunk_type }}: {{ item.metadata.summary || item.text.slice(0, 50) + '...' }}</strong>
+            <strong>{{ displayChunkType(item.metadata.chunk_type) }}: {{ item.metadata.summary || item.text.slice(0, 50) + '...' }}</strong>
           </div>
         </template>
         <template #text>
@@ -40,6 +40,7 @@ import markdownItMathTemml from 'markdown-it-math/temml'
 import DOMPurify from 'dompurify'
 import { API_BASE } from '../api'
 import { useViewerStore } from '../stores/viewer'
+import { displayChunkType } from '../utils'
 const query = ref('')
 const results = ref<any[]>([])
 
