@@ -1,21 +1,31 @@
 <template>
-  <div class="search-view">
-    <select v-model="selected" class="file-select">
-      <option v-for="f in files" :key="f" :value="f">{{ f }}</option>
-    </select>
-    <input v-model="query" placeholder="输入查询" />
-    <button @click="search">搜索</button>
-    <p v-if="loading">搜索中…</p>
-    <ul v-else-if="results.length > 0">
-      <li v-for="(item, i) in results" :key="i">
-        <a href="#" @click.prevent="open(item.metadata.file_id, item.metadata.page_num + 1)">
-          <span v-html="renderMarkdown(item.text)"></span>
-          （第 {{ item.metadata.page_num + 1 }} 页）
-        </a>
-      </li>
-    </ul>
-    <p v-else>暂无结果</p>
-  </div>
+  <v-container class="search-view">
+    <v-row class="align-center">
+      <v-col cols="12" md="4">
+        <v-select v-model="selected" :items="files" label="选择文件" density="comfortable" />
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-text-field v-model="query" label="输入查询" @keyup.enter="search" density="comfortable" />
+      </v-col>
+      <v-col cols="12" md="2">
+        <v-btn color="primary" class="mt-2 mt-md-0" @click="search" :loading="loading">搜索</v-btn>
+      </v-col>
+    </v-row>
+    <v-progress-linear indeterminate class="mt-4" v-if="loading" />
+    <v-list two-line class="mt-4" v-else-if="results.length > 0">
+      <v-list-item v-for="(item, i) in results" :key="i">
+        <v-list-item-content>
+          <v-list-item-title>
+            <a href="#" @click.prevent="open(item.metadata.file_id, item.metadata.page_num + 1)">
+              <span v-html="renderMarkdown(item.text)"></span>
+              （第 {{ item.metadata.page_num + 1 }} 页）
+            </a>
+          </v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+    </v-list>
+    <p v-else class="mt-4">暂无结果</p>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -81,11 +91,5 @@ onMounted(async () => {
 <style scoped>
 .search-view {
   padding: 1rem;
-}
-.search-view ul {
-  margin-top: 1rem;
-}
-.search-view li {
-  line-height: 1.8;
 }
 </style>
