@@ -164,7 +164,8 @@ async def list_chunks(file_id: str):
             "summary": c.metadata.get("summary", ""),
             "content": c.page_content,
             "chunk_type": c.metadata.get("chunk_type", ""),
-            "page_num": c.metadata.get("page_num")
+            "page_num": c.metadata.get("page_num"),
+            "number": c.metadata.get("number", "")
         }
         for c in chunks
     ]}
@@ -202,6 +203,7 @@ async def list_related(file_id: str, chunk_id: str):
                 "relation": rel.get("relation_type", ""),
                 "relation_summary": rel.get("summary", ""),
                 "chunk_type": c.metadata.get("chunk_type", ""),
-                "page_num": c.metadata.get("page_num")
+                "page_num": c.metadata.get("page_num"),
+                "number": c.metadata.get("number", "")
             })
     return {"related": result}
