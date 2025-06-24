@@ -4,25 +4,64 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="75a32871-f7d7-49a5-aeb0-f31516d8eeef" name="更改" comment="fix pipline #2">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="75a32871-f7d7-49a5-aeb0-f31516d8eeef" name="更改" comment="fix SearchView.vue">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/9ce9915b71f44b0a8d1c8725746e11d4.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/mineru/tmpcozesljn_content_list.json" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/data/vector_store/collection/test/storage.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/data/vector_store/collection/test/storage.sqlite" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/SearchView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/SearchView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/vector_store/meta.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/vector_store/meta.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/vite.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pipeline.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/preprocessing/filterer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/preprocessing/filterer.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "blackbird138"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "git@github.com:blackbird138/smart-math.git",
+    "accountId": "ef6d41d0-a0b9-43ef-a031-f3b3188e0d2e"
+  }
+}]]></component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 5
+}]]></component>
+  <component name="ProjectId" id="2ywJ0NuHlDu8qCCyzcAQh7tiwUO" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "git-widget-placeholder": "main"
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true"
   }
 }]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-890ed5b35930-d9c5bdb153f4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-251.23774.444" />
+      </set>
+    </attachedChunks>
+  </component>
   <component name="TaskManager">
     <task id="LOCAL-00001" summary="fix pipline">
       <option name="closed" value="true" />
@@ -40,12 +79,28 @@
       <option name="project" value="LOCAL" />
       <updated>1750682207231</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="fix SearchView.vue">
+      <option name="closed" value="true" />
+      <created>1750684463885</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1750684463885</updated>
+    </task>
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="75a32871-f7d7-49a5-aeb0-f31516d8eeef" name="更改" comment="fix SearchView.vue" />
+      <created>1750739479378</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1750739479378</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix pipline" />
     <MESSAGE value="fix pipline #2" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix pipline #2" />
+    <MESSAGE value="fix SearchView.vue" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix SearchView.vue" />
   </component>
 </project>

@@ -33,6 +33,7 @@ FILTER_SCHEMA = {
         "properties": {
             "state_code": {"type": "string"},
             "content": {"type": "string"},
+            "summary": {"type": "string"},
         },
     },
 }
@@ -52,12 +53,13 @@ sys_msg = BaseMessage.make_assistant_message(
         1. 判断 page_content 中一个前缀的内容是否与 chunk_type 指定的类型相符（例如 chunk_type="theorem" 时，判断其是否真的是定理类型内容）。
         2. 如果判断为真，且 page_content 没有缺失的内容：
            a. 将 `content` 置为符合要求的那个 page_content 的前缀。
-           b. 将 `state_code` 置为 "001"。
+           b. 讲 `summary` 置为该 chunk 内容的一句话（一个短词）总结。
+           c. 将 `state_code` 置为 "001"。
         3. 如果判断为真，但 page_content 有缺失的内容：
-           a. 将 `content` 置为空字符串。
+           a. 将 `content` 和 `summary` 置为空字符串。
            b. 将 `state_code` 置为 "002"。
         4. 如果判断为假：
-           a. 将 `content` 置为空字符串。
+           a. 将 `content` 和 `summary` 置为空字符串。
            b. 将 `state_code` 置为 "003"。
         最终输出一个 JSON 列表。
         """
@@ -136,11 +138,13 @@ def filter_and_convert(chunks: List[ParagraphChunk]) -> (List[ParagraphChunk], L
     results, faild_chunks = [], []
     for item, chunk in zip(candidate_list, chunks):
         if item["state_code"] == "001":
-            results.append(ParagraphChunk(
+            new_chunk = ParagraphChunk(
                 id=chunk.id,
                 page_content=item["content"],
                 metadata=chunk.metadata
-            ))
+            )
+            new_chunk.metadata["summary"] = item["summary"]
+            results.append(new_chunk)
         elif item["state_code"] == "002":
             faild_chunks.append(ParagraphChunk(
                 id=chunk.id,
@@ -155,6 +159,7 @@ def chunk_and_filter(docs: List[ParagraphChunk], TOKEN_LIM: int=500, FAILD_LIM: 
     docs_dict = {doc.id: (doc, index) for index, doc in enumerate(docs)}
 
     result, faild_chunks = filter_and_convert(chunks)
+
     retry_chunks = []
     for chunk in faild_chunks:
         target_chunk, target_index = docs_dict.get(chunk.metadata["initial_id"])
