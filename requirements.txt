@@ -10,3 +10,4 @@ pydantic
 pytest
 PyYAML
 transformers
+unstructured

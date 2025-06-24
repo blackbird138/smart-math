@@ -1,6 +1,7 @@
 # src/graph/relation_builder.py
 
 import json, os, time, backoff
+from typing import List, Dict
 from textwrap import dedent
 from jsonschema import validate, ValidationError
 from dotenv import load_dotenv
@@ -10,17 +11,19 @@ from camel.types import ModelPlatformType
 from camel.messages import BaseMessage
 from camel.utils.commons import BatchProcessor
 from itertools import islice
+from src.datamodel import ParagraphChunk
 
 load_dotenv()
+
+class SizeMismatchError(Exception):
+    pass
 
 REL_SCHEMA = {
     "type": "array",
     "items": {
         "type": "object",
-        "required": ["head", "tail", "related", "summary"],
+        "required": ["related", "relation_type", "summary"],
         "properties": {
-            "head": {"type": "string"},
-            "tail": {"type": "string"},
             "related": {"type": "boolean"},
             "relation_type": {"type": "string"},
             "summary": {"type": "string"},
@@ -37,17 +40,16 @@ sys_msg = BaseMessage.make_assistant_message(
             [<id>] <text1_type>:<text1>\n<text2_type>:<text2>
         
         任务：
-        输出一个 JSON 列表，列表的每个元素由对一对数学文本进行如下操作得到：
-        1. 将 text1_type 填入 `head` 字段，将 text2_type 填入 `tail` 字段。
-        2. 判断数学文本 text1 和 text2 是否存在直接或隐含的数学关系。
-        3. 如果存在数学关系：
-           a. 将二者的数学关系名称填入 `relation_type` 字段（如: 推论/特例/同构/补充/等价）。
+        输出一个 JSON 列表，列表的每个元素由对一对数学文本依次进行如下操作得到：
+        1. 判断数学文本 text1 和 text2 是否存在直接或隐含的数学关系。
+        2. 如果存在数学关系：
+           a. 将 text2 之于 text1 的数学关系名称填入 `relation_type` 字段（如: 推论/特例/同构/补充/等价）。
            b. 用一句话简述二者之间的数学关系，并填入 `summary` 字段，使用 markdown 格式。
            c. 将 `related` 字段置为 true。
-        4. 如果判断为假：
+        3. 如果判断为假：
            a. 将 `related` 字段置为 false。
            b. 将 `relation_type` 字段和 `summary` 字段设为空字符串。
-        5. 最终输出一个 JSON 列表。
+        4. 最终输出一个 JSON 列表。
         """
     )
 )
@@ -63,7 +65,7 @@ def _make_user_prompt(pairs, chunks):
     """把一个 batch 的候选对拼成 user prompt"""
     lines = []
     for idx, (h, t, _) in enumerate(pairs, 1):
-        lines.append(f"[{idx}] {h}:{chunks[h][:250]}\n{t}:{chunks[t][:250]}")
+        lines.append(f"[{idx}] {chunks[h].metadata['chunk_type']}:{chunks[h].page_content[:250]}\n{chunks[t].metadata['chunk_type']}:{chunks[t].page_content[:250]}")
     return "\n\n".join(lines)
 
 class RelationBuilder:
@@ -96,7 +98,7 @@ class RelationBuilder:
     def _call_llm(self, user_msg):
         return self.agent.step(user_msg).msgs[0].content
 
-    def build_relations(self, chunks, candidate_pairs):
+    def build_relations(self, chunks: Dict[str, ParagraphChunk], candidate_pairs):
         triples = []
         for pair_batch in _iter_batches(candidate_pairs):
             t0 = time.time()
@@ -108,10 +110,21 @@ class RelationBuilder:
             try:
                 data = json.loads(rsp)
                 validate(data, REL_SCHEMA)
+                if len(data) != len(pair_batch):
+                    raise SizeMismatchError(
+                        f"解析的数据条数 ({len(data)}) 与输入的对数 ({len(pair_batch)}) 不一致"
+                    )
             except (json.JSONDecodeError, ValidationError):
                 print("Schema 校验失败")
-            triples.extend([
-                d for d in data if d["related"]
-            ])
+            except SizeMismatchError as e:
+                print(f"错误: {e}")
+            for (pair, res) in zip(pair_batch, data):
+                if res["related"] == True:
+                    triples.append({
+                        "head": pair[0],
+                        "tail": pair[1],
+                        "relation_type": res["relation_type"],
+                        "summary": res["summary"],
+                    })
             batcher.adjust_batch_size(success=True, processing_time=time.time() - t0)
         return triples

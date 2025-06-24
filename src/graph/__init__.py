@@ -14,17 +14,17 @@ class GraphBuilder:
     """构建并保存数学文本之间的关系图."""
 
     def __init__(self, retriever: RetrieverManager, reranker: PairReranker,
-                 relation_builder: RelationBuilder, top_k: int = 5,
+                 relation_builder: RelationBuilder, file_id: str, top_k: int = 5,
                  base_dir: str = "data") -> None:
         self.retriever = retriever
         self.reranker = reranker
         self.relation_builder = relation_builder
         self.top_k = top_k
         self.base_dir = Path(base_dir)
+        self.file_id = file_id
 
-    def _build_pairs(self, file_id: str, chunks: List[ParagraphChunk]) -> List[tuple[str, str, float]]:
-        ids = [c.id for c in chunks]
-        pairs = list(self.retriever.topk_pairs(file_id, ids))
+    def _build_pairs(self, chunks: List[ParagraphChunk]) -> List[tuple[str, str, float]]:
+        pairs = list(self.retriever.topk_pairs(chunks))
         if not pairs:
             return []
 
@@ -38,29 +38,27 @@ class GraphBuilder:
         ranked = sorted(zip(pairs, scores), key=lambda x: x[1], reverse=True)
         return [(h, t, s) for (h, t, _), s in ranked[: self.top_k]]
 
-    def build_relations(self, file_id: str, chunks: List[ParagraphChunk]) -> List[dict]:
+    def build_relations(self, chunks: List[ParagraphChunk]) -> List[dict]:
         if not chunks:
             return []
-        chunk_texts: Dict[str, str] = {}
+        chunk_dics: Dict[str, ParagraphChunk] = {}
         for c in chunks:
-            text = c.page_content if isinstance(c.page_content, str) else "\n".join(c.page_content)
-            chunk_texts[c.id] = text
+            chunk_dics[c.id] = c
 
-        candidate_pairs = self._build_pairs(file_id, chunks)
+        candidate_pairs = self._build_pairs(chunks)
         if not candidate_pairs:
             return []
-        return self.relation_builder.build_relations(chunk_texts, candidate_pairs)
+        return self.relation_builder.build_relations(chunk_dics, candidate_pairs)
 
-    def save_relations(self, file_id: str, relations: List[dict]) -> None:
-        target_dir = self.base_dir / file_id
+    def save_relations(self, relations: List[dict]) -> None:
+        target_dir = self.base_dir / self.file_id
         target_dir.mkdir(parents=True, exist_ok=True)
         path = target_dir / "relations.json"
         with path.open("w", encoding="utf-8") as f:
             json.dump(relations, f, ensure_ascii=False, indent=2)
 
-    def build_and_save(self, file_id: str, chunks: List[ParagraphChunk]) -> List[dict]:
-        relations = self.build_relations(file_id, chunks)
+    def build_and_save(self, chunks: List[ParagraphChunk]) -> List[dict]:
+        relations = self.build_relations(chunks)
         if relations:
-            new_file_id = chunks[0].metadata.get("file_id", "default")
-            self.save_relations(new_file_id, relations)
+            self.save_relations(relations)
         return relations

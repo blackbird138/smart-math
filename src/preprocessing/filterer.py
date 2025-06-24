@@ -29,7 +29,7 @@ FILTER_SCHEMA = {
     "type": "array",
     "items": {
         "type": "object",
-        "required": ["state_code", "content"],
+        "required": ["state_code", "content", "summary"],
         "properties": {
             "state_code": {"type": "string"},
             "content": {"type": "string"},

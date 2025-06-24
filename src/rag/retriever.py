@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Tuple
 from qdrant_client import QdrantClient, models
 from camel.retrievers.vector_retriever import VectorRetriever
 from src.rag.embedding import EmbeddingManager
-
+from src.datamodel import ParagraphChunk
 
 @dataclass
 class RetrievedDoc:
@@ -35,18 +35,13 @@ class RetrieverManager:
         # 转换输出格式
         return hits
 
-    def topk_pairs(self, file_id : str, ids: list[str]) -> set[tuple[str,str,float]]:
+    def topk_pairs(self, chunks: List[ParagraphChunk]) -> set[tuple[str,str,float]]:
         pairs = set()
-        for pid in ids:
-            res = self.store.client.search(
-                collection_name=file_id,
-                query_vector={"id": pid},
-                limit=self.top_k,
-                with_payload=False,
-            )
+        for chunk in chunks:
+            res = self.retriever.query(chunk.page_content, top_k=self.top_k, similarity_threshold = 0.1)
             for hit in res:
-                if hit.id == pid or hit.score < self.threshold:
+                if hit["metadata"]["chunk_id"] == chunk.metadata["chunk_id"]:
                     continue
-                pair = tuple(sorted([pid, hit.id]))
-                pairs.add((*pair, hit.score))
+                pair = tuple(sorted([chunk.metadata["chunk_id"], hit["metadata"]["chunk_id"]]))
+                pairs.add((*pair, hit["similarity score"]))
         return pairs

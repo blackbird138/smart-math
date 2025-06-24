@@ -38,6 +38,7 @@ def chunk_documents(docs: List[ParagraphChunk], MAX_TOKEN: int=500) -> List[Para
         buf_meta = cur.metadata
         buf_meta["chunk_type"] = ctype
         buf_meta["initial_id"] = cur.id
+        buf_meta["chunk_id"] = uuid.uuid4().hex
         tok_cnt = len(cur.page_content)
 
         j = i + 1
@@ -55,7 +56,7 @@ def chunk_documents(docs: List[ParagraphChunk], MAX_TOKEN: int=500) -> List[Para
             j += 1
 
         result.append(ParagraphChunk(
-            id=uuid.uuid4().hex,
+            id=buf_meta["chunk_id"],
             page_content=buf_text,
             metadata=buf_meta,
         ))

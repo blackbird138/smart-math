@@ -118,10 +118,11 @@ async def build_graph(file_id: str, top_k: int = 5):
         retr,
         PairReranker(),
         RelationBuilder(agent_cfg),
+        file_id=file_id,
         top_k=top_k,
         base_dir="data/relation_store",
     )
-    relations = gb.build_and_save(file_id, chunks)
+    relations = gb.build_and_save(chunks)
     return {"relations": relations}
 
 @app.get("/list_chunks")
