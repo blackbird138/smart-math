@@ -1,5 +1,5 @@
 <template>
-  <div class="document-view">
+  <v-container class="document-view">
     <pdf-embed
       v-if="fileUrl"
       :source="fileUrl"
@@ -7,7 +7,7 @@
       style="width: 100%; height: 80vh;"
     />
     <p v-else>未找到文档</p>
-  </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">

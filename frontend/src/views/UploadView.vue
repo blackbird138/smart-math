@@ -1,11 +1,10 @@
 <template>
-  <div class="upload-view">
-    <input type="file" @change="onChange" />
-    <button @click="upload" :disabled="isUploading">上传</button>
-    <div v-if="isUploading" class="loading">上传中...</div>
-    <p v-if="success">上传成功，ID: {{ success }}</p>
-    <pdf-embed v-if="previewUrl" :source="previewUrl" style="width: 100%; height: 60vh;" />
-  </div>
+  <v-container class="upload-view">
+    <v-file-input label="选择PDF" accept=".pdf" @change="onChange" />
+    <v-btn color="primary" class="mt-2" @click="upload" :loading="isUploading" :disabled="!file">上传</v-btn>
+    <v-alert type="success" class="mt-2" v-if="success">上传成功，ID: {{ success }}</v-alert>
+    <pdf-embed v-if="previewUrl" :source="previewUrl" style="width: 100%; height: 60vh;" class="mt-4" />
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -60,9 +59,5 @@ async function upload() {
 <style scoped>
 .upload-view {
   padding: 1rem;
-}
-.loading {
-  margin-top: 0.5rem;
-  color: #42b983;
 }
 </style>

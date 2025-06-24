@@ -1,11 +1,11 @@
 <template>
-  <div class="pdf-viewer" v-if="fileId">
+  <v-sheet class="pdf-viewer" v-if="fileId" elevation="2">
     <pdf-embed
       :source="fileUrl"
       :page="page"
       style="width: 100%; height: 100vh;"
     />
-  </div>
+  </v-sheet>
 </template>
 
 <script setup lang="ts">

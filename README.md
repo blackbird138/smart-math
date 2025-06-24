@@ -26,7 +26,7 @@ Smart Math 是一个面向数学文档解析和问答的实验项目。项目通
 4. 运行前端
    ```bash
    cd frontend
-   npm install
+   npm install  # 安装包含 Vuetify 在内的依赖
    npm run dev
    ```
 

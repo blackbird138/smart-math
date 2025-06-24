@@ -1,24 +1,30 @@
 <template>
-  <div class="chunk-graph-view">
-    <select v-model="selectedFile" @change="loadChunks" class="file-select">
-      <option v-for="f in files" :key="f" :value="f">{{ f }}</option>
-    </select>
-    <ul v-if="chunks.length">
-      <li v-for="c in chunks" :key="c.id">
-        <a href="#" @click.prevent="showRelated(c.id)">{{ c.summary || c.id }}</a>
-      </li>
-    </ul>
+  <v-container class="chunk-graph-view">
+    <v-select
+      v-model="selectedFile"
+      :items="files"
+      label="选择文件"
+      class="mb-4"
+      @update:modelValue="loadChunks"
+    />
+    <v-list v-if="chunks.length">
+      <v-list-item v-for="c in chunks" :key="c.id">
+        <v-list-item-title>
+          <a href="#" @click.prevent="showRelated(c.id)">{{ c.summary || c.id }}</a>
+        </v-list-item-title>
+      </v-list-item>
+    </v-list>
     <p v-else>暂无chunk</p>
 
-    <div v-if="relatedChunks.length">
+    <div v-if="relatedChunks.length" class="mt-4">
       <h3>相关 chunk</h3>
-      <ul>
-        <li v-for="r in relatedChunks" :key="r.id">
+      <v-list>
+        <v-list-item v-for="r in relatedChunks" :key="r.id">
           {{ r.summary || r.id }}<span v-if="r.relation"> ({{ r.relation }})</span>
-        </li>
-      </ul>
+        </v-list-item>
+      </v-list>
     </div>
-  </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -60,8 +66,5 @@ onMounted(loadFiles)
 <style scoped>
 .chunk-graph-view {
   padding: 1rem;
-}
-.chunk-graph-view ul {
-  margin-top: 0.5rem;
 }
 </style>
