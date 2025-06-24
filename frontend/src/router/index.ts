@@ -4,6 +4,7 @@ import UploadView from '../views/UploadView.vue'
 import SearchView from '../views/SearchView.vue'
 import DocumentView from '../views/DocumentView.vue'
 import ChunkGraphView from '../views/ChunkGraphView.vue'
+import SettingsView from '../views/SettingsView.vue'
 
 const routes = [
   {
@@ -30,6 +31,11 @@ const routes = [
     path: '/chunks',
     name: 'chunks',
     component: ChunkGraphView
+  },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: SettingsView
   }
 ]
 
