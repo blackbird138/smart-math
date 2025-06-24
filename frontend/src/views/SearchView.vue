@@ -12,18 +12,23 @@
       </v-col>
     </v-row>
     <v-progress-linear indeterminate class="mt-4" v-if="loading" />
-    <v-list two-line class="mt-4" v-else-if="results.length > 0">
-      <v-list-item v-for="(item, i) in results" :key="i">
-        <v-list-item-content>
-          <v-list-item-title>
-            <a href="#" @click.prevent="open(item.metadata.file_id, item.metadata.page_num + 1)">
-              <span v-html="renderMarkdown(item.text)"></span>
-              （第 {{ item.metadata.page_num + 1 }} 页）
-            </a>
-          </v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-    </v-list>
+    <v-expansion-panels class="mt-4 result-panels" v-else-if="results.length > 0" multiple>
+      <v-expansion-panel v-for="(item, i) in results" :key="i" elevation="2" class="mb-2">
+        <template #title>
+          <div class="panel-title">
+            <strong>{{ item.metadata.chunk_type }}: {{ item.metadata.summary || item.text.slice(0, 50) + '...' }}</strong>
+          </div>
+        </template>
+        <template #text>
+          <div v-html="renderMarkdown(item.text)"></div>
+          <div class="d-flex justify-end mt-2">
+            <v-btn size="small" color="primary" @click="open(item.metadata.file_id, item.metadata.page_num + 1)">
+              加载 PDF 第 {{ item.metadata.page_num + 1 }} 页
+            </v-btn>
+          </div>
+        </template>
+      </v-expansion-panel>
+    </v-expansion-panels>
     <p v-else class="mt-4">暂无结果</p>
   </v-container>
 </template>
@@ -91,5 +96,12 @@ onMounted(async () => {
 <style scoped>
 .search-view {
   padding: 1rem;
+  width: 50%;
+}
+.result-panels .panel-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-height: 48px;
 }
 </style>

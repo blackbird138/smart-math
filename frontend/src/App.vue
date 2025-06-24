@@ -10,11 +10,13 @@
     </v-app-bar>
     <v-main>
       <v-container fluid class="d-flex">
-        <router-view v-slot="{ Component }">
-          <v-fade-transition mode="out-in">
-            <component :is="Component" />
-          </v-fade-transition>
-        </router-view>
+        <div class="view-area">
+          <router-view v-slot="{ Component }">
+            <v-fade-transition mode="out-in">
+              <component :is="Component" />
+            </v-fade-transition>
+          </router-view>
+        </div>
         <PdfViewer />
       </v-container>
     </v-main>
@@ -28,5 +30,8 @@ import PdfViewer from './components/PdfViewer.vue'
 <style>
 body {
   margin: 0;
+}
+.view-area {
+  width: 50%;
 }
 </style>

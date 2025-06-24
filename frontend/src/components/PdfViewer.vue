@@ -22,7 +22,7 @@ const fileUrl = computed(() => fileId.value ? `${API_BASE}/files/${fileId.value}
 
 <style scoped>
 .pdf-viewer {
-  width: 40%;
+  width: 50%;
   padding: 1rem;
 }
 </style>
