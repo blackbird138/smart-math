@@ -7,6 +7,16 @@
       class="mb-4"
       @update:modelValue="loadChunks"
     />
+    <v-select
+      v-model="selectedTypes"
+      :items="chunkTypeItems"
+      label="筛选类型"
+      multiple
+      chips
+      clearable
+      class="mb-4"
+      @update:modelValue="loadChunks"
+    />
     <v-progress-linear indeterminate v-if="loading" />
     <v-expansion-panels
       v-else-if="chunks.length"
@@ -62,6 +72,8 @@ import { displayChunkType } from '../utils'
 
 const files = ref<string[]>([])
 const selectedFile = ref('')
+const selectedTypes = ref<string[]>([])
+const chunkTypeItems = ['definition', 'theorem', 'lemma', 'corollary', 'example', 'exercise', 'remark'].map(t => ({ value: t, title: displayChunkType(t) }))
 const chunks = ref<any[]>([])
 const loading = ref(false)
 const expanded = ref<string[]>([])
@@ -94,7 +106,8 @@ async function loadChunks() {
   related.value = {}
   if (!selectedFile.value) return
   try {
-    const res = await fetch(`${API_BASE}/list_chunks?file_id=${selectedFile.value}`)
+    const typeParam = selectedTypes.value.length ? `&chunk_type=${selectedTypes.value.join(',')}` : ''
+    const res = await fetch(`${API_BASE}/list_chunks?file_id=${selectedFile.value}${typeParam}`)
     const data = await res.json()
     chunks.value = data.chunks || []
   } finally {
@@ -123,6 +136,10 @@ function openPdf(page: number) {
 
 watch(expanded, (val) => {
   val.forEach((id) => loadRelated(id))
+})
+
+watch(selectedTypes, () => {
+  loadChunks()
 })
 
 onMounted(loadFiles)
