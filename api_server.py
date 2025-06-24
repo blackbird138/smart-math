@@ -146,7 +146,8 @@ async def list_related(file_id: str, chunk_id: str):
     """列出与指定 chunk 相关的所有 chunk"""
     rel_path = Path("data") / file_id / "relations.json"
     if not rel_path.exists():
-        raise HTTPException(status_code=404, detail="relations not found")
+        # 若关系文件不存在则尝试构建
+        await build_graph(file_id)
     with rel_path.open("r", encoding="utf-8") as f:
         relations = json.load(f)
     related_ids = [
