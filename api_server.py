@@ -1,4 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from pydantic import BaseModel
+from dotenv import set_key
+import os
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from tempfile import NamedTemporaryFile
@@ -37,6 +40,21 @@ with open(Path("config") / "agent_config.yaml", "r", encoding="utf-8") as f:
 file_managers: dict[str, RetrieverManager] = {}
 file_docs: dict[str, list[ParagraphChunk]] = {}
 
+class EnvUpdate(BaseModel):
+    SILICONFLOW_API_KEY: str | None = None
+    OPENAI_COMPATIBILITY_API_KEY: str | None = None
+
+@app.post("/update_env")
+async def update_env(data: EnvUpdate):
+    """更新服务器环境变量并写入 .env 文件"""
+    env_file = Path(".env")
+    if data.SILICONFLOW_API_KEY is not None:
+        os.environ["SILICONFLOW_API_KEY"] = data.SILICONFLOW_API_KEY
+        set_key(str(env_file), "SILICONFLOW_API_KEY", data.SILICONFLOW_API_KEY)
+    if data.OPENAI_COMPATIBILITY_API_KEY is not None:
+        os.environ["OPENAI_COMPATIBILITY_API_KEY"] = data.OPENAI_COMPATIBILITY_API_KEY
+        set_key(str(env_file), "OPENAI_COMPATIBILITY_API_KEY", data.OPENAI_COMPATIBILITY_API_KEY)
+    return {"status": "ok"}
 
 @app.post("/ingest")
 async def ingest(file: UploadFile = File(...)):
@@ -192,14 +210,12 @@ async def list_related(file_id: str, chunk_id: str):
     for cid, rel in related_ids:
         c = id_map.get(cid)
         if c:
-            result.append(
-                {
-                    "id": c.id,
-                    "summary": c.metadata.get("summary", ""),
-                    "relation": rel.get("relation_type", ""),
-                    "relation_summary": rel.get("summary", ""),
-                    "chunk_type": c.metadata.get("chunk_type", ""),
-                    "page_num": c.metadata.get("page_num"),
-                }
-            )
+            result.append({
+                "id": c.id,
+                "summary": c.metadata.get("summary", ""),
+                "relation": rel.get("relation_type", ""),
+                "relation_summary": rel.get("summary", ""),
+                "chunk_type": c.metadata.get("chunk_type", ""),
+                "page_num": c.metadata.get("page_num")
+            })
     return {"related": result}
