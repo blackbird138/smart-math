@@ -1,11 +1,13 @@
 <template>
-  <v-sheet class="pdf-viewer" v-if="fileId" elevation="2">
-    <pdf-embed
-      :source="fileUrl"
-      :page="page"
-      style="width: 100%; height: 100vh;"
-    />
-  </v-sheet>
+  <v-slide-x-reverse-transition>
+    <v-sheet class="pdf-viewer" v-if="fileId" elevation="2">
+      <pdf-embed
+        :source="fileUrl"
+        :page="page"
+        style="width: 100%; height: 100vh;"
+      />
+    </v-sheet>
+  </v-slide-x-reverse-transition>
 </template>
 
 <script setup lang="ts">

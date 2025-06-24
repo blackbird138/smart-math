@@ -138,7 +138,13 @@ async def list_chunks(file_id: str):
             chunks = [ParagraphChunk.from_json(s) for s in json_list]
         file_docs[file_id] = chunks
     return {"chunks": [
-        {"id": c.id, "summary": c.metadata.get("summary", ""), "content": c.page_content}
+        {
+            "id": c.id,
+            "summary": c.metadata.get("summary", ""),
+            "content": c.page_content,
+            "chunk_type": c.metadata.get("chunk_type", ""),
+            "page_num": c.metadata.get("page_num")
+        }
         for c in chunks
     ]}
 
@@ -173,6 +179,8 @@ async def list_related(file_id: str, chunk_id: str):
                 "id": c.id,
                 "summary": c.metadata.get("summary", ""),
                 "relation": rel.get("relation_type", ""),
-                "relation_summary": rel.get("summary", "")
+                "relation_summary": rel.get("summary", ""),
+                "chunk_type": c.metadata.get("chunk_type", ""),
+                "page_num": c.metadata.get("page_num")
             })
     return {"related": result}
