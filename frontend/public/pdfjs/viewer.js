@@ -3131,7 +3131,7 @@ const defaultOptions = {
     kind: OptionKind.API
   },
   cMapUrl: {
-    value: "../web/cmaps/",
+    value: "cmaps/",
     kind: OptionKind.API
   },
   disableAutoFetch: {

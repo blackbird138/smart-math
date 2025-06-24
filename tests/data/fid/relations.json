@@ -1,0 +1,12 @@
+[
+  {
+    "head": "a",
+    "tail": "c",
+    "score": 0.9
+  },
+  {
+    "head": "b",
+    "tail": "c",
+    "score": 0.2
+  }
+]
