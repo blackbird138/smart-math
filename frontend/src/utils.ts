@@ -67,9 +67,10 @@ export function linkRefs(
 export function replaceRefTags(
   html: string,
   refs: Record<string, Record<string, string>>,
+  idMap: Record<string, any> = {},
 ): string {
-  const valid = /\[REF:([^/\n]+)\/([^/\n]+)\/([^\]\n]*)\]/gi;
-  html = html.replace(valid, (_, type, num, summary) => {
+  const typed = /\[REF:([^/\n]+)\/([^/\n]+)\/([^\]\n]*)\]/gi;
+  html = html.replace(typed, (_, type, num, summary) => {
     const lower = type.toLowerCase();
     const id = refs[lower]?.[num];
     const display = `${displayChunkType(lower)} ${num}${summary ? ': ' + summary : ''}`;
@@ -78,6 +79,16 @@ export function replaceRefTags(
     }
     return `<span class="chip">${display}</span>`;
   });
+
+  const byId = /\[REF:([^/\n\]]+)\]/gi;
+  html = html.replace(byId, (_, cid) => {
+    const item = idMap[cid] || {};
+    const type = item.chunk_type ? displayChunkType(String(item.chunk_type)) : '';
+    const num = item.number || '';
+    const label = type && num ? `${type} ${num}` : 'REF';
+    return `<span class="ref-link chip" data-id="${cid}">${label}</span>`;
+  });
+
   // 移除无法解析的 REF 标记但保留其他文本
   return html.replace(/\[REF:[^\n\]]*(?:\]|$)/gi, "");
 }

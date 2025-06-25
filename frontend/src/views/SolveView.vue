@@ -60,7 +60,7 @@ const md = new MarkdownIt({ html: false, linkify: true, typographer: true }).use
 function renderMarkdown(text: string, id = ''): string {
   const raw = md.render(text)
   let sanitized = DOMPurify.sanitize(raw)
-  sanitized = replaceRefTags(sanitized, refMap.refMap)
+  sanitized = replaceRefTags(sanitized, refMap.refMap, refMap.idMap)
   return linkRefs(sanitized, refMap.refMap, id)
 }
 
