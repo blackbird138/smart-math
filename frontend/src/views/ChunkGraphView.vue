@@ -1,5 +1,5 @@
 <template>
-  <v-container class="chunk-graph-view">
+  <v-container class="chunk-graph-view" @click="onClickRef">
     <v-select
       v-model="selectedFile"
       :items="files"
@@ -62,6 +62,13 @@
       </v-expansion-panel>
     </v-expansion-panels>
     <p v-else>暂无chunk</p>
+    <v-dialog v-model="dialog" max-width="600">
+      <v-card>
+        <v-card-text @click="onClickRef">
+          <div v-html="renderMarkdown(refContent)" />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -86,6 +93,9 @@ const expanded = ref<string[]>([])
 const related = ref<Record<string, { loading: boolean; items: any[] }>>({})
 const viewer = useViewerStore()
 const refMap = useRefMapStore()
+
+const dialog = ref(false)
+const refContent = ref('')
 
 const md = new MarkdownIt({
   html: false,
@@ -145,6 +155,29 @@ async function loadRelated(id: string) {
 
 function openPdf(page: number) {
   viewer.setFile(selectedFile.value, page)
+}
+
+async function loadRef(id: string) {
+  try {
+    const res = await fetch(`${API_BASE}/list_chunks?file_id=${selectedFile.value}`)
+    const data = await res.json()
+    const item = (data.chunks || []).find((c: any) => c.id === id)
+    if (item) {
+      refContent.value = item.content
+      dialog.value = true
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+function onClickRef(e: MouseEvent) {
+  const target = (e.target as HTMLElement).closest('a') as HTMLAnchorElement | null
+  if (target && target.getAttribute('href')?.startsWith('ref:')) {
+    e.preventDefault()
+    const id = target.getAttribute('href')!.slice(4)
+    loadRef(id)
+  }
 }
 
 watch(expanded, (val) => {
