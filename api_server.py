@@ -32,9 +32,10 @@ app.add_middleware(
 app.mount("/files", StaticFiles(directory="data"), name="files")
 
 # 加载 RAG 与 Agent 配置
-with open(Path("config") / "rag_config.yaml", "r", encoding="utf-8") as f:
+BASE_DIR = Path(__file__).resolve().parent
+with open(BASE_DIR / "config" / "rag_config.yaml", "r", encoding="utf-8") as f:
     cfg = yaml.safe_load(f)
-with open(Path("config") / "agent_config.yaml", "r", encoding="utf-8") as f:
+with open(BASE_DIR / "config" / "agent_config.yaml", "r", encoding="utf-8") as f:
     agent_cfg = yaml.safe_load(f)
 
 # 按文件缓存对应的索引管理器及切片内容

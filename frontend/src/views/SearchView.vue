@@ -1,5 +1,5 @@
 <template>
-  <v-container class="search-view" @click="onClickRef">
+  <v-container class="search-view" @click.capture="onClickRef">
     <v-row class="align-center">
       <v-col cols="12" md="4">
         <v-select
@@ -85,7 +85,7 @@
     <p v-else class="mt-4">暂无结果</p>
     <v-dialog v-model="dialog" max-width="600">
       <v-card>
-        <v-card-text @click="onClickRef">
+        <v-card-text @click.capture="onClickRef">
           <div v-html="renderMarkdown(refContent)" />
         </v-card-text>
       </v-card>
@@ -101,7 +101,7 @@ import DOMPurify from "dompurify";
 import { API_BASE } from "../api";
 import { useViewerStore } from "../stores/viewer";
 import { useRefMapStore } from "../stores/refMap";
-import { displayChunkType, linkRefs } from "../utils";
+import { displayChunkType, linkRefs, replaceRefTags } from "../utils";
 const query = ref("");
 const results = ref<any[]>([]);
 
@@ -122,9 +122,11 @@ const md = new MarkdownIt({
 const dialog = ref(false);
 const refContent = ref("");
 
-function renderMarkdown(text: string, id = ""): string {
-  const rawHtml = md.render(text);
-  const sanitized = DOMPurify.sanitize(rawHtml);
+function renderMarkdown(text: string | undefined | null, id = ""): string {
+  const txt = typeof text === "string" ? text : String(text || "");
+  const rawHtml = md.render(txt);
+  let sanitized = DOMPurify.sanitize(rawHtml);
+  sanitized = replaceRefTags(sanitized, refMap.refMap);
   return linkRefs(sanitized, refMap.refMap, id);
 }
 
@@ -157,6 +159,7 @@ async function loadRelated(id: string) {
     );
     const data = await res.json();
     related.value[id].items = data.related || [];
+    refMap.mergeItems(related.value[id].items);
   } catch (err) {
     console.error(err);
     related.value[id].items = [];
@@ -214,6 +217,8 @@ function onClickRef(e: MouseEvent) {
     ".ref-link",
   ) as HTMLElement | null;
   if (target) {
+    e.preventDefault();
+    e.stopPropagation();
     const idAttr = target.getAttribute("data-id");
     let id = idAttr || "";
     if (!id) {
