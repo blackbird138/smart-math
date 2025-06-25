@@ -8,11 +8,10 @@
       <v-btn to="/search" variant="text">搜索</v-btn>
       <v-btn to="/chunks" variant="text">内容</v-btn>
       <v-btn to="/settings" variant="text">设置</v-btn>
-
     </v-app-bar>
     <v-main>
       <v-container fluid class="d-flex">
-        <div class="view-area">
+        <div class="view-area" :class="{ 'full-width': viewer.collapsed }">
           <router-view v-slot="{ Component }">
             <v-fade-transition mode="out-in">
               <component :is="Component" />
@@ -26,17 +25,20 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue'
-import { useRoute } from 'vue-router'
-import PdfViewer from './components/PdfViewer.vue'
-import { useViewerStore } from './stores/viewer'
+import { watch } from "vue";
+import { useRoute } from "vue-router";
+import PdfViewer from "./components/PdfViewer.vue";
+import { useViewerStore } from "./stores/viewer";
 
-const route = useRoute()
-const viewer = useViewerStore()
+const route = useRoute();
+const viewer = useViewerStore();
 
-watch(() => route.fullPath, () => {
-  viewer.setFile('')
-})
+watch(
+  () => route.fullPath,
+  () => {
+    viewer.setFile("");
+  },
+);
 </script>
 
 <style>
@@ -45,5 +47,8 @@ body {
 }
 .view-area {
   width: 50%;
+}
+.view-area.full-width {
+  width: 100%;
 }
 </style>

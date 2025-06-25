@@ -34,17 +34,24 @@
           <strong>
             {{ displayChunkType(c.chunk_type) }}
             <template v-if="c.number"> {{ c.number }}</template>
-            : {{ c.summary || c.content.slice(0, 50) + '...' }}
+            : {{ c.summary || c.content.slice(0, 50) + "..." }}
           </strong>
         </template>
         <template #text>
-          <div v-html="renderMarkdown(c.content)" />
+          <div v-html="renderMarkdown(c.content, c.id)" />
           <div class="d-flex justify-end mt-2">
-            <v-btn size="small" color="primary" @click="openPdf(c.page_num + 1)">
+            <v-btn
+              size="small"
+              color="primary"
+              @click="openPdf(c.page_num + 1)"
+            >
               查看 PDF 第 {{ c.page_num + 1 }} 页
             </v-btn>
           </div>
-          <div class="mt-4">
+          <div
+            class="mt-4"
+            v-if="related[c.id]?.loading || related[c.id]?.items.length"
+          >
             <h4>相关词条</h4>
             <v-progress-circular indeterminate v-if="related[c.id]?.loading" />
             <v-expansion-panels v-else multiple>
@@ -53,7 +60,7 @@
                   <strong>{{ r.relation }}: {{ r.summary || r.id }}</strong>
                 </template>
                 <template #text>
-                  <div>{{ r.relation_summary }}</div>
+                  <div v-html="renderMarkdown(r.relation_summary, r.id)" />
                 </template>
               </v-expansion-panel>
             </v-expansion-panels>
@@ -73,137 +80,155 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import MarkdownIt from 'markdown-it'
-import markdownItMathTemml from 'markdown-it-math/temml'
-import DOMPurify from 'dompurify'
-import { API_BASE } from '../api'
-import { useViewerStore } from '../stores/viewer'
-import { useRefMapStore } from '../stores/refMap'
-import { displayChunkType, linkRefs } from '../utils'
+import { ref, onMounted, watch } from "vue";
+import MarkdownIt from "markdown-it";
+import markdownItMathTemml from "markdown-it-math/temml";
+import DOMPurify from "dompurify";
+import { API_BASE } from "../api";
+import { useViewerStore } from "../stores/viewer";
+import { useRefMapStore } from "../stores/refMap";
+import { displayChunkType, linkRefs } from "../utils";
 
-const files = ref<string[]>([])
-const selectedFile = ref('')
-const selectedTypes = ref<string[]>([])
-const chunkTypeItems = ['definition', 'theorem', 'lemma', 'corollary', 'example', 'exercise', 'remark'].map(t => ({ value: t, title: displayChunkType(t) }))
-const chunks = ref<any[]>([])
-const loading = ref(false)
-const expanded = ref<string[]>([])
-const related = ref<Record<string, { loading: boolean; items: any[] }>>({})
-const viewer = useViewerStore()
-const refMap = useRefMapStore()
+const files = ref<string[]>([]);
+const selectedFile = ref("");
+const selectedTypes = ref<string[]>([]);
+const chunkTypeItems = [
+  "definition",
+  "theorem",
+  "lemma",
+  "corollary",
+  "example",
+  "exercise",
+  "remark",
+].map((t) => ({ value: t, title: displayChunkType(t) }));
+const chunks = ref<any[]>([]);
+const loading = ref(false);
+const expanded = ref<string[]>([]);
+const related = ref<Record<string, { loading: boolean; items: any[] }>>({});
+const viewer = useViewerStore();
+const refMap = useRefMapStore();
 
-const dialog = ref(false)
-const refContent = ref('')
+const dialog = ref(false);
+const refContent = ref("");
 
 const md = new MarkdownIt({
   html: false,
   linkify: true,
   typographer: true,
-}).use(markdownItMathTemml)
+}).use(markdownItMathTemml);
 
-function renderMarkdown(text: string): string {
-  const raw = md.render(text)
-  const sanitized = DOMPurify.sanitize(raw)
-  return linkRefs(sanitized, refMap.refMap)
+function renderMarkdown(text: string, id = ""): string {
+  const raw = md.render(text);
+  const sanitized = DOMPurify.sanitize(raw);
+  return linkRefs(sanitized, refMap.refMap, id);
 }
 
 async function loadFiles() {
-  const res = await fetch(`${API_BASE}/list_files`)
-  const data = await res.json()
-  files.value = data.files || []
+  const res = await fetch(`${API_BASE}/list_files`);
+  const data = await res.json();
+  files.value = data.files || [];
   if (files.value.length && !selectedFile.value) {
-    selectedFile.value = files.value[0]
-    loadChunks()
+    selectedFile.value = files.value[0];
+    loadChunks();
   }
 }
 
 async function loadChunks() {
-  loading.value = true
-  related.value = {}
-  if (!selectedFile.value) return
+  loading.value = true;
+  related.value = {};
+  if (!selectedFile.value) return;
   try {
-    const typeParam = selectedTypes.value.length ? `&chunk_type=${selectedTypes.value.join(',')}` : ''
-    const res = await fetch(`${API_BASE}/list_chunks?file_id=${selectedFile.value}${typeParam}`)
-    const data = await res.json()
-    chunks.value = data.chunks || []
-    const idMap: Record<string, any> = {}
-    const refMapData: Record<string, Record<string, string>> = {}
+    const typeParam = selectedTypes.value.length
+      ? `&chunk_type=${selectedTypes.value.join(",")}`
+      : "";
+    const res = await fetch(
+      `${API_BASE}/list_chunks?file_id=${selectedFile.value}${typeParam}`,
+    );
+    const data = await res.json();
+    chunks.value = data.chunks || [];
+    const idMap: Record<string, any> = {};
+    const refMapData: Record<string, Record<string, string>> = {};
     for (const c of data.chunks || []) {
-      idMap[c.id] = c
-      const type = c.chunk_type?.toLowerCase()
-      const num = c.number
+      idMap[c.id] = c;
+      const type = c.chunk_type?.toLowerCase();
+      const num = c.number;
       if (type && num) {
-        if (!refMapData[type]) refMapData[type] = {}
-        refMapData[type][num] = c.id
+        if (!refMapData[type]) refMapData[type] = {};
+        refMapData[type][num] = c.id;
       }
     }
-    refMap.setMap(idMap, refMapData)
+    refMap.setMap(idMap, refMapData);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function loadRelated(id: string) {
-  if (related.value[id]) return
-  related.value[id] = { loading: true, items: [] }
+  if (related.value[id]) return;
+  related.value[id] = { loading: true, items: [] };
   try {
-    const res = await fetch(`${API_BASE}/list_related?file_id=${selectedFile.value}&chunk_id=${id}`)
-    const data = await res.json()
-    related.value[id].items = data.related || []
+    const res = await fetch(
+      `${API_BASE}/list_related?file_id=${selectedFile.value}&chunk_id=${id}`,
+    );
+    const data = await res.json();
+    related.value[id].items = data.related || [];
   } catch (err) {
-    console.error(err)
-    related.value[id].items = []
+    console.error(err);
+    related.value[id].items = [];
   } finally {
-    related.value[id].loading = false
+    related.value[id].loading = false;
   }
 }
 
 function openPdf(page: number) {
-  viewer.setFile(selectedFile.value, page)
+  viewer.setFile(selectedFile.value, page);
 }
 
 async function loadRef(id: string) {
   try {
-    const res = await fetch(`${API_BASE}/list_chunks?file_id=${selectedFile.value}`)
-    const data = await res.json()
-    const item = (data.chunks || []).find((c: any) => c.id === id)
+    const res = await fetch(
+      `${API_BASE}/list_chunks?file_id=${selectedFile.value}`,
+    );
+    const data = await res.json();
+    const item = (data.chunks || []).find((c: any) => c.id === id);
     if (item) {
-      refContent.value = item.content
-      dialog.value = true
+      refContent.value = item.content;
+      dialog.value = true;
     }
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
 }
 
 function onClickRef(e: MouseEvent) {
-  const target = (e.target as HTMLElement).closest('.ref-link') as HTMLElement | null
+  const target = (e.target as HTMLElement).closest(
+    ".ref-link",
+  ) as HTMLElement | null;
   if (target) {
-    const type = target.getAttribute('data-type') || ''
-    const num = target.getAttribute('data-num') || ''
-    const id = refMap.refMap[type]?.[num]
+    const type = target.getAttribute("data-type") || "";
+    const num = target.getAttribute("data-num") || "";
+    const id = refMap.refMap[type]?.[num];
     if (id) {
-      const chunk = refMap.idMap[id]
+      const chunk = refMap.idMap[id];
       if (chunk) {
-        refContent.value = chunk.content
-        dialog.value = true
+        refContent.value = chunk.content;
+        dialog.value = true;
       } else {
-        loadRef(id)
+        loadRef(id);
       }
     }
   }
 }
 
 watch(expanded, (val) => {
-  val.forEach((id) => loadRelated(id))
-})
+  val.forEach((id) => loadRelated(id));
+});
 
 watch(selectedTypes, () => {
-  loadChunks()
-})
+  loadChunks();
+});
 
-onMounted(loadFiles)
+onMounted(loadFiles);
 </script>
 
 <style scoped>
