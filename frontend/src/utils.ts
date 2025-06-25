@@ -59,3 +59,19 @@ export function linkRefs(
     return match;
   });
 }
+
+export function replaceRefTags(
+  html: string,
+  refs: Record<string, Record<string, string>>,
+): string {
+  const regex = /\[REF:([^/]+)\/([^/]+)\/([^\]]*)\]/gi;
+  return html.replace(regex, (_, type, num, summary) => {
+    const lower = type.toLowerCase();
+    const id = refs[lower]?.[num];
+    const display = `${displayChunkType(lower)} ${num}${summary ? ': ' + summary : ''}`;
+    if (id) {
+      return `<span class="ref-link chip" data-type="${lower}" data-num="${num}" data-id="${id}">${display}</span>`;
+    }
+    return `<span class="chip">${display}</span>`;
+  });
+}

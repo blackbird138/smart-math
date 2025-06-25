@@ -5,6 +5,7 @@ import SearchView from '../views/SearchView.vue'
 import DocumentView from '../views/DocumentView.vue'
 import ChunkGraphView from '../views/ChunkGraphView.vue'
 import SettingsView from '../views/SettingsView.vue'
+import SolveView from '../views/SolveView.vue'
 
 const routes = [
   {
@@ -31,6 +32,11 @@ const routes = [
     path: '/chunks',
     name: 'chunks',
     component: ChunkGraphView
+  },
+  {
+    path: '/solve',
+    name: 'solve',
+    component: SolveView
   },
   {
     path: '/settings',
