@@ -89,7 +89,7 @@ class MathSolver:
         pattern = re.compile(r"\[REF:([^/]+)\]")
 
         def repl(match: re.Match) -> str:
-            chunk_id = match.groups()
+            chunk_id = match.group(1)
             if chunk_id in self.docs_dict:
                 return match.group(0)
             return ""
@@ -97,11 +97,17 @@ class MathSolver:
         return pattern.sub(repl, text)
 
     def solve(self, question: str) -> str:
-        """让模型自行调用 ``search_chunks`` 完成检索，并在返回结果后校验引用."""
-        user_msg = BaseMessage.make_user_message("user", question)
+        """调用检索工具后向模型提问并校验引用."""
+
+        # 先尝试根据问题检索相关词条，至少调用一次 ``search_chunks``
+        chunk_id = self.search_chunks(question)
+        context = ""
+        if chunk_id and chunk_id in self.docs_dict:
+            doc = self.docs_dict[chunk_id]
+            # 将检索到的片段内容放入提示中，引导模型正确引用
+            context = f"以下内容可能有帮助：\n{doc.page_content}\n[REF:{chunk_id}]\n"
+
+        user_msg = BaseMessage.make_user_message("user", context + question)
         rsp = self.agent.step(user_msg)
-        print(rsp.msgs[0].content)
         answer = self._validate_refs(rsp.msgs[0].content)
-        print(rsp.info['tool_calls'])
-        print(answer)
         return answer
