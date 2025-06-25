@@ -251,9 +251,13 @@ watch(selected, () => {
   loadRefMap();
 });
 
-watch(expanded, (val) => {
-  val.forEach((id) => loadRelated(id));
-});
+watch(
+  expanded,
+  (val) => {
+    val.forEach((id) => loadRelated(id));
+  },
+  { deep: true },
+);
 </script>
 
 <style scoped>
