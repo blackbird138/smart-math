@@ -211,12 +211,6 @@ watch(selected, () => {
 <style scoped>
 .search-view {
   padding: 1rem;
-  width: 50%;
-}
-.result-panels .panel-title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-height: 48px;
+  width: 100%;
 }
 </style>
