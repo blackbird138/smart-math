@@ -74,6 +74,7 @@ import { API_BASE } from '../api'
 import { useViewerStore } from '../stores/viewer'
 import { useRefMapStore } from '../stores/refMap'
 import { displayChunkType } from '../utils'
+import { linkRefs } from '../linkRefs'
 
 const files = ref<string[]>([])
 const selectedFile = ref('')
@@ -94,7 +95,8 @@ const md = new MarkdownIt({
 
 function renderMarkdown(text: string): string {
   const raw = md.render(text)
-  return DOMPurify.sanitize(raw)
+  const sanitized = DOMPurify.sanitize(raw)
+  return linkRefs(sanitized)
 }
 
 async function loadFiles() {

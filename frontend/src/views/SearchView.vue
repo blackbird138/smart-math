@@ -42,6 +42,7 @@ import { API_BASE } from '../api'
 import { useViewerStore } from '../stores/viewer'
 import { useRefMapStore } from '../stores/refMap'
 import { displayChunkType } from '../utils'
+import { linkRefs } from '../linkRefs'
 const query = ref('')
 const results = ref<any[]>([])
 
@@ -59,7 +60,8 @@ const md = new MarkdownIt({
 
 function renderMarkdown(text: string): string {
   const rawHtml = md.render(text)
-  return DOMPurify.sanitize(rawHtml)
+  const sanitized = DOMPurify.sanitize(rawHtml)
+  return linkRefs(sanitized)
 }
 
 async function search() {
