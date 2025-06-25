@@ -115,7 +115,7 @@ const md = new MarkdownIt({
   html: false,
   linkify: true,
   typographer: true,
-}).use(markdownItMathTemml);
+}).use(markdownItMathTemml, { inlineAllowWhiteSpacePadding: true });
 
 function renderMarkdown(text: string, id = ""): string {
   const raw = md.render(text);

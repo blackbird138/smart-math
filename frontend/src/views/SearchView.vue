@@ -96,7 +96,7 @@ const md = new MarkdownIt({
   html: false,
   linkify: true,
   typographer: true,
-}).use(markdownItMathTemml);
+}).use(markdownItMathTemml, { inlineAllowWhiteSpacePadding: true });
 
 const dialog = ref(false);
 const refContent = ref("");

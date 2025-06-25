@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from textwrap import dedent
 from typing import List, Dict, Optional
+import re
 import yaml
 
 from camel.agents import ChatAgent
@@ -87,7 +88,24 @@ class MathSolver:
             })
         return results
 
+
+    def _validate_refs(self, text: str) -> str:
+        """校验回答中的引用是否存在，不存在的标注为无效引用."""
+        pattern = re.compile(r"\[REF:([^/]+)/([^/]+)/([^\]]*)\]")
+
+        def repl(match: re.Match) -> str:
+            chunk_type, num, summary = match.groups()
+            query = f"{chunk_type} {num} {summary}".strip()
+            res = self.search_chunks(query, top_k=1)
+            if res:
+                return match.group(0)
+            return f"[无效引用:{chunk_type}/{num}]"
+
+        return pattern.sub(repl, text)
+
     def solve(self, question: str) -> str:
+        """让模型自行调用 ``search_chunks`` 完成检索，并在返回结果后校验引用."""
         user_msg = BaseMessage.make_user_message("user", question)
         rsp = self.agent.step(user_msg)
-        return rsp.msgs[0].content
+        answer = rsp.msgs[0].content
+        return self._validate_refs(answer)

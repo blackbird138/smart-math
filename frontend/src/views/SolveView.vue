@@ -55,7 +55,7 @@ const refMap = useRefMapStore()
 const dialog = ref(false)
 const refContent = ref('')
 
-const md = new MarkdownIt({ html: false, linkify: true, typographer: true }).use(markdownItMathTemml)
+const md = new MarkdownIt({ html: false, linkify: true, typographer: true }).use(markdownItMathTemml, { inlineAllowWhiteSpacePadding: true })
 
 function renderMarkdown(text: string, id = ''): string {
   const raw = md.render(text)
