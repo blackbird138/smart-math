@@ -8,7 +8,6 @@ import yaml
 from camel.agents import ChatAgent
 from camel.models import ModelFactory
 from camel.messages import BaseMessage
-from camel.toolkits import FunctionTool
 from camel.types import ModelPlatformType
 
 from src.datamodel import ParagraphChunk
@@ -36,14 +35,12 @@ _system_msg = BaseMessage.make_assistant_message(
     role_name="math_solver",
     content=dedent(
         """
-        你是一个数学题解助手，可以调用工具 `search_chunks` 查询文档库中的相关词条（如定理，命题，定义等）。
-        当你在证明中使用某个定理/命题，必须通过调用工具 `search_chunks` 查询文档困中是否存在该词条，若存在请使用格式 [REF:{chunk_id}] 标注，其中 chunk_id 可以通过 `search_chunks` 查询的返回值得到。
-        在获得足够信息后给出完整的解答和证明。
-        
-        有如下几个要求：
+        你是一个数学题解助手。用户的问题前会附带与主题相关的词条（定理、命题、定义等）。
+        请充分利用这些词条完成证明和解答，引用时使用格式 [REF:{chunk_id}]，其中 chunk_id 已在题目中给出。
+
+        有如下要求：
         1. 输出使用 markdown 可直接渲染解析的格式，LaTeX 公式要放在 $$ 中。
-        2. 尽量使用 `search_chunks` 可查询到的词条解决问题。
-        3. 不要编造文档库中不存在的词条作为引用。
+        2. 仅可引用用户提供的词条，不要编造文档库中不存在的引用。
         """
     ),
 )
@@ -53,7 +50,6 @@ class MathSolver:
     def __init__(self, retriever: Optional[RetrieverManager], docs: List[ParagraphChunk]):
         self.retriever = retriever
         self.docs = docs
-        self.tool = FunctionTool(self.search_chunks)
         self.docs_dict = {}
         for doc in self.docs:
             self.docs_dict[doc.id] = doc
@@ -61,27 +57,25 @@ class MathSolver:
             system_message=_system_msg,
             model=_model,
             output_language="中文",
-            tools=[self.tool],
         )
 
-    def search_chunks(self, query: str) -> str:
-        r"""查询文档库里相关的词条（定理/命题/定义 等）。
-
-        Args:
-            query (str): 查询的内容的主题。
-
-        Returns:
-            str: 相关词条的 chunk_id
-        """
+    def search_chunks(self, query: str, top_k: int = 10) -> List[str]:
+        r"""查询文档库里相关的词条（定理/命题/定义 等）。"""
         hits = []
         if self.retriever is not None:
             try:
-                hits = self.retriever.retrieve(query, top_k=1)
+                hits = self.retriever.retrieve(query, top_k=top_k)
             except Exception:
                 hits = []
-        if hits == []:
-            return ""
-        return hits[0]["metadata"]["chunk_id"]
+        if not hits:
+            return []
+        ids: List[str] = []
+        for h in hits:
+            md = h.get("metadata", {})
+            cid = md.get("chunk_id")
+            if cid:
+                ids.append(cid)
+        return ids
 
 
     def _validate_refs(self, text: str) -> str:
@@ -89,7 +83,7 @@ class MathSolver:
         pattern = re.compile(r"\[REF:([^/]+)\]")
 
         def repl(match: re.Match) -> str:
-            chunk_id = match.groups()
+            chunk_id = match.group(1)
             if chunk_id in self.docs_dict:
                 return match.group(0)
             return ""
@@ -97,11 +91,25 @@ class MathSolver:
         return pattern.sub(repl, text)
 
     def solve(self, question: str) -> str:
-        """让模型自行调用 ``search_chunks`` 完成检索，并在返回结果后校验引用."""
-        user_msg = BaseMessage.make_user_message("user", question)
+        """结合检索结果回答问题并校验引用."""
+        # 调用检索获取相关词条列表
+        chunk_ids = self.search_chunks(question, top_k=10)
+        context_parts = []
+        for idx, cid in enumerate(chunk_ids, 1):
+            doc = self.docs_dict.get(cid)
+            if not doc:
+                continue
+            content = doc.page_content
+            if isinstance(content, list):
+                content = " ".join(content)
+            context_parts.append(f"{idx}. {content} [REF:{cid}]")
+
+        prompt = question
+        if context_parts:
+            prompt += "\n\n以下词条供参考，请在需要时引用：\n" + "\n".join(context_parts)
+
+        user_msg = BaseMessage.make_user_message("user", prompt)
         rsp = self.agent.step(user_msg)
-        print(rsp.msgs[0].content)
+
         answer = self._validate_refs(rsp.msgs[0].content)
-        print(rsp.info['tool_calls'])
-        print(answer)
         return answer
