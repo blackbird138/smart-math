@@ -275,35 +275,4 @@ async def solve(req: SolveRequest):
         file_managers[req.file_id] = retr
     solver = MathSolver(retr, docs)
     answer = solver.solve(req.question)
-    print(answer)
     return {"answer": answer}
-
-# def solve(req: SolveRequest):
-#     """调用 LLM 解答数学问题"""
-#     retr = file_managers.get(req.file_id)
-#     docs = file_docs.get(req.file_id)
-#     if docs is None:
-#         path = Path("data/relation_store") / req.file_id / "chunks.json"
-#         if not path.exists():
-#             raise HTTPException(status_code=404, detail="chunks not found")
-#         with path.open("r", encoding="utf-8") as f:
-#             json_list = json.load(f)
-#             docs = [ParagraphChunk.from_json(s) for s in json_list]
-#         file_docs[req.file_id] = docs
-#     if retr is None:
-#         try:
-#             emb_mgr = EmbeddingManager(cfg["embedding"], req.file_id)
-#             emb_mgr.storage.status()
-#             retr = RetrieverManager(emb_mgr, cfg["retriever"])
-#         except Exception:
-#             retr = None
-#         file_managers[req.file_id] = retr
-#     solver = MathSolver(retr, docs)
-#     answer = solver.solve(req.question)
-#     print(answer)
-#     return {"answer": answer}
-
-# solve(SolveRequest(
-#     file_id="4e4ef39bb6e9443a94e9f2d53cfb0458",
-#     question="证明n阶单位矩阵I和任意n阶方阵都是可交换的。",
-# ))

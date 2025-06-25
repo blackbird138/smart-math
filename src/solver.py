@@ -36,13 +36,14 @@ _system_msg = BaseMessage.make_assistant_message(
     role_name="math_solver",
     content=dedent(
         """
-        你是一个数学题解助手，可以调用工具 `search_chunks` 查询相关词条（如定理，命题，定义等）。
-        当在证明中引用某个词条时，请使用格式 [REF:{chunk_type}/{chunk_number}/{chunk_summary}] 标注。
+        你是一个数学题解助手，可以调用工具 `search_chunks` 查询文档库中的相关词条（如定理，命题，定义等）。
+        当你在证明中使用某个定理/命题，必须通过调用工具 `search_chunks` 查询文档困中是否存在该词条，若存在请使用格式 [REF:{chunk_id}] 标注，其中 chunk_id 可以通过 `search_chunks` 查询的返回值得到。
         在获得足够信息后给出完整的解答和证明。
         
         有如下几个要求：
         1. 输出使用 markdown 可直接渲染解析的格式，LaTeX 公式要放在 $$ 中。
         2. 尽量使用 `search_chunks` 可查询到的词条解决问题。
+        3. 不要编造文档库中不存在的词条作为引用。
         """
     ),
 )
@@ -53,6 +54,9 @@ class MathSolver:
         self.retriever = retriever
         self.docs = docs
         self.tool = FunctionTool(self.search_chunks)
+        self.docs_dict = {}
+        for doc in self.docs:
+            self.docs_dict[doc.id] = doc
         self.agent = ChatAgent(
             system_message=_system_msg,
             model=_model,
@@ -60,46 +64,35 @@ class MathSolver:
             tools=[self.tool],
         )
 
-    def search_chunks(self, query: str, top_k: int = 3) -> List[Dict[str, str]]:
-        """搜索与查询相关的 chunk 内容。"""
+    def search_chunks(self, query: str) -> str:
+        r"""查询文档库里相关的词条（定理/命题/定义 等）。
+
+        Args:
+            query (str): 查询的内容的主题。
+
+        Returns:
+            str: 相关词条的 chunk_id
+        """
         hits = []
-        print(f"<UNK> {query} <UNK>")
         if self.retriever is not None:
             try:
-                hits = self.retriever.retrieve(query, top_k=top_k)
+                hits = self.retriever.retrieve(query, top_k=1)
             except Exception:
                 hits = []
-        if not hits:
-            # 简单回退：在本地 docs 中按关键字搜索
-            for c in self.docs:
-                if query in c.page_content:
-                    hits.append({"text": c.page_content, "metadata": c.metadata})
-                    if len(hits) >= top_k:
-                        break
-        results = []
-        for h in hits:
-            md = h.get("metadata", {})
-            results.append({
-                "chunk_id": md.get("chunk_id", ""),
-                "chunk_type": md.get("chunk_type", ""),
-                "chunk_number": md.get("number", ""),
-                "chunk_summary": md.get("summary", ""),
-                "content": h.get("text", ""),
-            })
-        return results
+        if hits == []:
+            return ""
+        return hits[0]["metadata"]["chunk_id"]
 
 
     def _validate_refs(self, text: str) -> str:
         """校验回答中的引用是否存在，不存在的标注为无效引用."""
-        pattern = re.compile(r"\[REF:([^/]+)/([^/]+)/([^\]]*)\]")
+        pattern = re.compile(r"\[REF:([^/]+)\]")
 
         def repl(match: re.Match) -> str:
-            chunk_type, num, summary = match.groups()
-            query = f"{chunk_type} {num} {summary}".strip()
-            res = self.search_chunks(query, top_k=1)
-            if res:
+            chunk_id = match.groups()
+            if chunk_id in self.docs_dict:
                 return match.group(0)
-            return f"[无效引用:{chunk_type}/{num}]"
+            return ""
 
         return pattern.sub(repl, text)
 
@@ -107,5 +100,8 @@ class MathSolver:
         """让模型自行调用 ``search_chunks`` 完成检索，并在返回结果后校验引用."""
         user_msg = BaseMessage.make_user_message("user", question)
         rsp = self.agent.step(user_msg)
-        answer = rsp.msgs[0].content
-        return self._validate_refs(answer)
+        print(rsp.msgs[0].content)
+        answer = self._validate_refs(rsp.msgs[0].content)
+        print(rsp.info['tool_calls'])
+        print(answer)
+        return answer
