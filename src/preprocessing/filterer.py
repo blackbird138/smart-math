@@ -22,7 +22,7 @@ CONFIG_DIR = BASE_DIR / "config"
 
 # 加载 agent 配置
 with open(CONFIG_DIR / "agent_config.yaml", "r", encoding="utf-8") as f:
-    agent_cfg = yaml.safe_load(f)
+    agent_cfg = yaml.safe_load(f)["PROCESS_MODEL"]
 
 # 2. 定义 Pydantic 模型
 FILTER_SCHEMA = {

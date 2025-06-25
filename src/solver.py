@@ -15,16 +15,15 @@ from src.rag.retriever import RetrieverManager
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-with open(BASE_DIR / "config" / "rag_config.yaml", "r", encoding="utf-8") as f:
-    cfg = yaml.safe_load(f)
-_llm_cfg = cfg.get("rag", {}).get("llm", {})
+with open(BASE_DIR / "config" / "agent_config.yaml", "r", encoding="utf-8") as f:
+    cfg = yaml.safe_load(f)["GENERATE_MODEL"]
 
-platform = _llm_cfg.get("platform", "openai")
+platform = cfg.get("model_platform", "SILICONFLOW")
 try:
     _model = ModelFactory.create(
-        model_platform=ModelPlatformType(platform),
-        model_type=_llm_cfg.get("model", "gpt-3.5-turbo"),
-        model_config_dict={k: v for k, v in _llm_cfg.items() if k not in {"platform", "model"}},
+        model_platform=ModelPlatformType[platform],
+        model_type=cfg.get("model_type", "Pro/deepseek-ai/DeepSeek-R1"),
+        model_config_dict=cfg.get("model_config", None),
     )
 except Exception:
     _model = ModelFactory.create(
@@ -36,9 +35,13 @@ _system_msg = BaseMessage.make_assistant_message(
     role_name="math_solver",
     content=dedent(
         """
-        你是一个数学题解助手，可以调用工具 `search_chunks` 查询相关词条。
+        你是一个数学题解助手，可以调用工具 `search_chunks` 查询相关词条（如定理，命题，定义等）。
         当在证明中引用某个词条时，请使用格式 [REF:{chunk_type}/{chunk_number}/{chunk_summary}] 标注。
         在获得足够信息后给出完整的解答和证明。
+        
+        有如下几个要求：
+        1. 输出使用 markdown 可直接渲染解析的格式，LaTeX 公式要放在 $$ 中。
+        2. 尽量使用 `search_chunks` 可查询到的词条解决问题。
         """
     ),
 )
@@ -59,6 +62,7 @@ class MathSolver:
     def search_chunks(self, query: str, top_k: int = 3) -> List[Dict[str, str]]:
         """搜索与查询相关的 chunk 内容。"""
         hits = []
+        print(f"<UNK> {query} <UNK>")
         if self.retriever is not None:
             try:
                 hits = self.retriever.retrieve(query, top_k=top_k)
