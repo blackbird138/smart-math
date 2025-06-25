@@ -31,11 +31,13 @@
     <v-expansion-panels
       class="mt-4 result-panels"
       v-else-if="results.length > 0"
+      v-model="expanded"
       multiple
     >
       <v-expansion-panel
         v-for="(item, i) in results"
         :key="i"
+        :value="item.metadata.chunk_id"
         elevation="2"
         class="mb-2"
       >
@@ -59,6 +61,23 @@
             >
               加载 PDF 第 {{ item.metadata.page_num + 1 }} 页
             </v-btn>
+          </div>
+          <div
+            class="mt-4"
+            v-if="related[item.metadata.chunk_id]?.loading || related[item.metadata.chunk_id]?.items.length"
+          >
+            <h4>相关词条</h4>
+            <v-progress-circular indeterminate v-if="related[item.metadata.chunk_id]?.loading" />
+            <v-expansion-panels v-else multiple>
+              <v-expansion-panel v-for="r in related[item.metadata.chunk_id]?.items" :key="r.id">
+                <template #title>
+                  <strong>{{ r.relation }}: {{ r.summary || r.id }}</strong>
+                </template>
+                <template #text>
+                  <div v-html="renderMarkdown(r.relation_summary, r.id)" />
+                </template>
+              </v-expansion-panel>
+            </v-expansion-panels>
           </div>
         </template>
       </v-expansion-panel>
@@ -89,6 +108,8 @@ const results = ref<any[]>([]);
 const loading = ref(false);
 const files = ref<string[]>([]);
 const selected = ref("");
+const expanded = ref<string[]>([]);
+const related = ref<Record<string, { loading: boolean; items: any[] }>>({});
 const viewer = useViewerStore();
 const refMap = useRefMapStore();
 
@@ -116,12 +137,31 @@ async function search() {
     );
     const data = await res.json();
     results.value = data.results || [];
+    expanded.value = [];
+    related.value = {};
     await loadRefMap();
   } catch (err) {
     console.error(err);
     results.value = [];
   } finally {
     loading.value = false;
+  }
+}
+
+async function loadRelated(id: string) {
+  if (related.value[id]) return;
+  related.value[id] = { loading: true, items: [] };
+  try {
+    const res = await fetch(
+      `${API_BASE}/list_related?file_id=${selected.value}&chunk_id=${id}`,
+    );
+    const data = await res.json();
+    related.value[id].items = data.related || [];
+  } catch (err) {
+    console.error(err);
+    related.value[id].items = [];
+  } finally {
+    related.value[id].loading = false;
   }
 }
 
@@ -209,6 +249,10 @@ onMounted(async () => {
 
 watch(selected, () => {
   loadRefMap();
+});
+
+watch(expanded, (val) => {
+  val.forEach((id) => loadRelated(id));
 });
 </script>
 
