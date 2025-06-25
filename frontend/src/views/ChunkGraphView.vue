@@ -225,9 +225,13 @@ function onClickRef(e: MouseEvent) {
   }
 }
 
-watch(expanded, (val) => {
-  val.forEach((id) => loadRelated(id));
-});
+watch(
+  expanded,
+  (val) => {
+    val.forEach((id) => loadRelated(id));
+  },
+  { deep: true },
+);
 
 watch(selectedTypes, () => {
   loadChunks();
