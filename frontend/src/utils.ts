@@ -1,5 +1,6 @@
 export function displayChunkType(type: string): string {
   const map: Record<string, string> = {
+    proposition: "命题",
     definition: "定义",
     defination: "定义",
     theorem: "定理",
@@ -36,6 +37,9 @@ export const refAliases: Record<string, string> = {
   remark: "remark",
   注: "remark",
   rmk: "remark",
+  proposition: "proposition",
+  命题: "proposition",
+  prop: "proposition",
 };
 
 export function linkRefs(
@@ -64,8 +68,8 @@ export function replaceRefTags(
   html: string,
   refs: Record<string, Record<string, string>>,
 ): string {
-  const regex = /\[REF:([^/]+)\/([^/]+)\/([^\]]*)\]/gi;
-  return html.replace(regex, (_, type, num, summary) => {
+  const valid = /\[REF:([^/\n]+)\/([^/\n]+)\/([^\]\n]*)\]/gi;
+  html = html.replace(valid, (_, type, num, summary) => {
     const lower = type.toLowerCase();
     const id = refs[lower]?.[num];
     const display = `${displayChunkType(lower)} ${num}${summary ? ': ' + summary : ''}`;
@@ -74,4 +78,6 @@ export function replaceRefTags(
     }
     return `<span class="chip">${display}</span>`;
   });
+  // 移除无法解析的 REF 标记但保留其他文本
+  return html.replace(/\[REF:[^\n\]]*(?:\]|$)/gi, "");
 }
