@@ -41,13 +41,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import MarkdownIt from 'markdown-it'
 import markdownItMathTemml from 'markdown-it-math/temml'
 import DOMPurify from 'dompurify'
 import { API_BASE } from '../api'
 import { useViewerStore } from '../stores/viewer'
+import { useRefMapStore } from '../stores/refMap'
 import { displayChunkType } from '../utils'
+import { linkRefs } from '../linkRefs'
 const query = ref('')
 const results = ref<any[]>([])
 
@@ -55,6 +57,7 @@ const loading = ref(false)
 const files = ref<string[]>([])
 const selected = ref('')
 const viewer = useViewerStore()
+const refMap = useRefMapStore()
 
 const md = new MarkdownIt({
   html: false,
@@ -67,7 +70,8 @@ const refContent = ref('')
 
 function renderMarkdown(text: string): string {
   const rawHtml = md.render(text)
-  return DOMPurify.sanitize(rawHtml)
+  const sanitized = DOMPurify.sanitize(rawHtml)
+  return linkRefs(sanitized)
 }
 
 async function search() {
@@ -77,6 +81,7 @@ async function search() {
     const res = await fetch(`${API_BASE}/search?file_id=${selected.value}&q=${encodeURIComponent(query.value)}`)
     const data = await res.json()
     results.value = data.results || []
+    await loadRefMap()
   } catch (err) {
     console.error(err)
     results.value = []
@@ -120,9 +125,14 @@ onMounted(async () => {
     if (files.value.length && !selected.value) {
       selected.value = files.value[0]
     }
+    await loadRefMap()
   } catch (err) {
     console.error(err)
   }
+})
+
+watch(selected, () => {
+  loadRefMap()
 })
 
 </script>

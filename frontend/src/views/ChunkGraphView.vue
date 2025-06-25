@@ -79,7 +79,9 @@ import markdownItMathTemml from 'markdown-it-math/temml'
 import DOMPurify from 'dompurify'
 import { API_BASE } from '../api'
 import { useViewerStore } from '../stores/viewer'
+import { useRefMapStore } from '../stores/refMap'
 import { displayChunkType } from '../utils'
+import { linkRefs } from '../linkRefs'
 
 const files = ref<string[]>([])
 const selectedFile = ref('')
@@ -90,6 +92,7 @@ const loading = ref(false)
 const expanded = ref<string[]>([])
 const related = ref<Record<string, { loading: boolean; items: any[] }>>({})
 const viewer = useViewerStore()
+const refMap = useRefMapStore()
 
 const dialog = ref(false)
 const refContent = ref('')
@@ -102,7 +105,8 @@ const md = new MarkdownIt({
 
 function renderMarkdown(text: string): string {
   const raw = md.render(text)
-  return DOMPurify.sanitize(raw)
+  const sanitized = DOMPurify.sanitize(raw)
+  return linkRefs(sanitized)
 }
 
 async function loadFiles() {
@@ -124,6 +128,11 @@ async function loadChunks() {
     const res = await fetch(`${API_BASE}/list_chunks?file_id=${selectedFile.value}${typeParam}`)
     const data = await res.json()
     chunks.value = data.chunks || []
+    const m: Record<string, any> = {}
+    for (const c of data.chunks || []) {
+      m[c.id] = c
+    }
+    refMap.setMap(m)
   } finally {
     loading.value = false
   }
