@@ -57,7 +57,8 @@ const refContent = ref('')
 
 const md = new MarkdownIt({ html: false, linkify: true, typographer: true }).use(markdownItMathTemml, { inlineAllowWhiteSpacePadding: true })
 
-function renderMarkdown(text: string, id = ''): string {
+function renderMarkdown(text: string | undefined | null, id = ''): string {
+  if (typeof text !== 'string') text = ''
   const raw = md.render(text)
   let sanitized = DOMPurify.sanitize(raw)
   sanitized = replaceRefTags(sanitized, refMap.refMap, refMap.idMap)
@@ -137,6 +138,8 @@ async function loadRef(id: string) {
 function onClickRef(e: MouseEvent) {
   const target = (e.target as HTMLElement).closest('.ref-link') as HTMLElement | null
   if (target) {
+    e.preventDefault()
+    e.stopPropagation()
     const idAttr = target.getAttribute('data-id')
     let id = idAttr || ''
     if (!id) {

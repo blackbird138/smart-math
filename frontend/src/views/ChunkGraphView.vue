@@ -1,5 +1,5 @@
 <template>
-  <v-container class="chunk-graph-view" @click="onClickRef">
+  <v-container class="chunk-graph-view" @click.capture="onClickRef">
     <v-select
       v-model="selectedFile"
       :items="files"
@@ -71,7 +71,7 @@
     <p v-else>暂无chunk</p>
     <v-dialog v-model="dialog" max-width="600">
       <v-card>
-        <v-card-text @click="onClickRef">
+        <v-card-text @click.capture="onClickRef">
           <div v-html="renderMarkdown(refContent)" />
         </v-card-text>
       </v-card>
@@ -80,14 +80,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, nextTick } from "vue";
 import MarkdownIt from "markdown-it";
 import markdownItMathTemml from "markdown-it-math/temml";
 import DOMPurify from "dompurify";
 import { API_BASE } from "../api";
 import { useViewerStore } from "../stores/viewer";
 import { useRefMapStore } from "../stores/refMap";
-import { displayChunkType, linkRefs } from "../utils";
+import { displayChunkType, linkRefs, replaceRefTags } from "../utils";
 
 const files = ref<string[]>([]);
 const selectedFile = ref("");
@@ -117,9 +117,11 @@ const md = new MarkdownIt({
   typographer: true,
 }).use(markdownItMathTemml, { inlineAllowWhiteSpacePadding: true });
 
-function renderMarkdown(text: string, id = ""): string {
-  const raw = md.render(text);
-  const sanitized = DOMPurify.sanitize(raw);
+function renderMarkdown(text: string | undefined | null, id = ""): string {
+  const txt = typeof text === "string" ? text : String(text || "");
+  const raw = md.render(txt);
+  let sanitized = DOMPurify.sanitize(raw);
+  sanitized = replaceRefTags(sanitized, refMap.refMap);
   return linkRefs(sanitized, refMap.refMap, id);
 }
 
@@ -145,7 +147,6 @@ async function loadChunks() {
       `${API_BASE}/list_chunks?file_id=${selectedFile.value}${typeParam}`,
     );
     const data = await res.json();
-    chunks.value = data.chunks || [];
     const idMap: Record<string, any> = {};
     const refMapData: Record<string, Record<string, string>> = {};
     for (const c of data.chunks || []) {
@@ -158,6 +159,7 @@ async function loadChunks() {
       }
     }
     refMap.setMap(idMap, refMapData);
+    chunks.value = data.chunks || [];
   } finally {
     loading.value = false;
   }
@@ -188,24 +190,33 @@ function openPdf(page: number) {
 async function loadRef(id: string) {
   try {
     const res = await fetch(
-      `${API_BASE}/list_chunks?file_id=${selectedFile.value}`,
+      `${API_BASE}/get_chunk?file_id=${selectedFile.value}&chunk_id=${id}`,
     );
+    if (!res.ok) return;
     const data = await res.json();
-    const item = (data.chunks || []).find((c: any) => c.id === id);
-    if (item) {
-      refContent.value = item.content;
-      dialog.value = true;
-    }
+    const item = {
+      id,
+      content: data.content,
+      chunk_type: data.chunk_type,
+      number: data.number,
+    };
+    refMap.mergeItems([item]);
+    refContent.value = data.content;
+    dialog.value = false;
+    await nextTick();
+    dialog.value = true;
   } catch (err) {
     console.error(err);
   }
 }
 
-function onClickRef(e: MouseEvent) {
+async function onClickRef(e: MouseEvent) {
   const target = (e.target as HTMLElement).closest(
     ".ref-link",
   ) as HTMLElement | null;
   if (target) {
+    e.preventDefault();
+    e.stopPropagation();
     const idAttr = target.getAttribute("data-id");
     let id = idAttr || "";
     if (!id) {
@@ -217,9 +228,11 @@ function onClickRef(e: MouseEvent) {
       const chunk = refMap.idMap[id];
       if (chunk) {
         refContent.value = chunk.content;
+        dialog.value = false;
+        await nextTick();
         dialog.value = true;
       } else {
-        loadRef(id);
+        await loadRef(id);
       }
     }
   }
