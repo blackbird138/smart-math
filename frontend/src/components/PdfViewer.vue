@@ -3,7 +3,7 @@
     <v-btn
       icon
       class="collapse-btn"
-      v-show="!viewer.collapsed"
+      v-show="fileId && !viewer.collapsed"
       @click="viewer.toggleCollapsed()"
     >
       <v-icon>{{

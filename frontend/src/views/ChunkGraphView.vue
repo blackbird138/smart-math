@@ -205,9 +205,13 @@ function onClickRef(e: MouseEvent) {
     ".ref-link",
   ) as HTMLElement | null;
   if (target) {
-    const type = target.getAttribute("data-type") || "";
-    const num = target.getAttribute("data-num") || "";
-    const id = refMap.refMap[type]?.[num];
+    const idAttr = target.getAttribute("data-id");
+    let id = idAttr || "";
+    if (!id) {
+      const type = target.getAttribute("data-type") || "";
+      const num = target.getAttribute("data-num") || "";
+      id = refMap.refMap[type]?.[num] || "";
+    }
     if (id) {
       const chunk = refMap.idMap[id];
       if (chunk) {

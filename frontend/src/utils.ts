@@ -54,7 +54,7 @@ export function linkRefs(
       if (id === currentId) {
         return `<span class="ref-self chip">${match}</span>`;
       }
-      return `<span class="ref-link chip" data-type="${type}" data-num="${num}">${match}</span>`;
+      return `<span class="ref-link chip" data-type="${type}" data-num="${num}" data-id="${id}">${match}</span>`;
     }
     return match;
   });
