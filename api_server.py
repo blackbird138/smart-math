@@ -18,6 +18,7 @@ from src.graph import GraphBuilder
 from src.graph.pair_reranker import PairReranker
 from src.graph.relation_builder import RelationBuilder
 from src.datamodel import ParagraphChunk
+from src.solver import MathSolver
 
 app = FastAPI()
 
@@ -243,3 +244,36 @@ async def get_chunk(file_id: str, chunk_id: str):
             }
 
     raise HTTPException(status_code=404, detail="chunk not found")
+
+
+class SolveRequest(BaseModel):
+    file_id: str
+    question: str
+    top_k: int | None = 3
+
+
+@app.post("/solve")
+async def solve(req: SolveRequest):
+    """调用 LLM 解答数学问题"""
+    retr = file_managers.get(req.file_id)
+    docs = file_docs.get(req.file_id)
+    if docs is None:
+        path = Path("data/relation_store") / req.file_id / "chunks.json"
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="chunks not found")
+        with path.open("r", encoding="utf-8") as f:
+            json_list = json.load(f)
+            docs = [ParagraphChunk.from_json(s) for s in json_list]
+        file_docs[req.file_id] = docs
+    if retr is None:
+        try:
+            emb_mgr = EmbeddingManager(cfg["embedding"], req.file_id)
+            emb_mgr.storage.status()
+            retr = RetrieverManager(emb_mgr, cfg["retriever"])
+        except Exception:
+            retr = None
+        file_managers[req.file_id] = retr
+
+    solver = MathSolver(retr, docs)
+    answer = solver.solve(req.question)
+    return {"answer": answer}

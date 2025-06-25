@@ -1,0 +1,89 @@
+import json
+from pathlib import Path
+from textwrap import dedent
+from typing import List, Dict, Optional
+import yaml
+
+from camel.agents import ChatAgent
+from camel.models import ModelFactory
+from camel.messages import BaseMessage
+from camel.toolkits import FunctionTool
+from camel.types import ModelPlatformType
+
+from src.datamodel import ParagraphChunk
+from src.rag.retriever import RetrieverManager
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+with open(BASE_DIR / "config" / "rag_config.yaml", "r", encoding="utf-8") as f:
+    cfg = yaml.safe_load(f)
+_llm_cfg = cfg.get("rag", {}).get("llm", {})
+
+platform = _llm_cfg.get("platform", "openai")
+try:
+    _model = ModelFactory.create(
+        model_platform=ModelPlatformType(platform),
+        model_type=_llm_cfg.get("model", "gpt-3.5-turbo"),
+        model_config_dict={k: v for k, v in _llm_cfg.items() if k not in {"platform", "model"}},
+    )
+except Exception:
+    _model = ModelFactory.create(
+        model_platform=ModelPlatformType.DEFAULT,
+        model_type="stub",
+    )
+
+_system_msg = BaseMessage.make_assistant_message(
+    role_name="math_solver",
+    content=dedent(
+        """
+        你是一个数学题解助手，可以调用工具 `search_chunks` 查询相关词条。
+        当在证明中引用某个词条时，请使用格式 [REF:{chunk_type}/{chunk_number}/{chunk_summary}] 标注。
+        在获得足够信息后给出完整的解答和证明。
+        """
+    ),
+)
+
+
+class MathSolver:
+    def __init__(self, retriever: Optional[RetrieverManager], docs: List[ParagraphChunk]):
+        self.retriever = retriever
+        self.docs = docs
+        self.tool = FunctionTool(self.search_chunks)
+        self.agent = ChatAgent(
+            system_message=_system_msg,
+            model=_model,
+            output_language="中文",
+            tools=[self.tool],
+        )
+
+    def search_chunks(self, query: str, top_k: int = 3) -> List[Dict[str, str]]:
+        """搜索与查询相关的 chunk 内容。"""
+        hits = []
+        if self.retriever is not None:
+            try:
+                hits = self.retriever.retrieve(query, top_k=top_k)
+            except Exception:
+                hits = []
+        if not hits:
+            # 简单回退：在本地 docs 中按关键字搜索
+            for c in self.docs:
+                if query in c.page_content:
+                    hits.append({"text": c.page_content, "metadata": c.metadata})
+                    if len(hits) >= top_k:
+                        break
+        results = []
+        for h in hits:
+            md = h.get("metadata", {})
+            results.append({
+                "chunk_id": md.get("chunk_id", ""),
+                "chunk_type": md.get("chunk_type", ""),
+                "chunk_number": md.get("number", ""),
+                "chunk_summary": md.get("summary", ""),
+                "content": h.get("text", ""),
+            })
+        return results
+
+    def solve(self, question: str) -> str:
+        user_msg = BaseMessage.make_user_message("user", question)
+        rsp = self.agent.step(user_msg)
+        return rsp.msgs[0].content
