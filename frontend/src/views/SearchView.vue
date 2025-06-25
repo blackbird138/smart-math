@@ -189,6 +189,7 @@ function onClickRef(e: MouseEvent) {
       } else {
         loadRef(id);
       }
+    }
   }
 }
 
