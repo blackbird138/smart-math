@@ -7,6 +7,7 @@
       <v-btn to="/upload" variant="text">上传</v-btn>
       <v-btn to="/search" variant="text">搜索</v-btn>
       <v-btn to="/chunks" variant="text">内容</v-btn>
+      <v-btn to="/solve" variant="text">解题</v-btn>
       <v-btn to="/settings" variant="text">设置</v-btn>
     </v-app-bar>
     <v-main>
