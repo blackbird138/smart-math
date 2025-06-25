@@ -47,7 +47,9 @@ _system_msg = BaseMessage.make_assistant_message(
 
 
 class MathSolver:
-    def __init__(self, retriever: Optional[RetrieverManager], docs: List[ParagraphChunk]):
+    def __init__(
+        self, retriever: Optional[RetrieverManager], docs: List[ParagraphChunk]
+    ):
         self.retriever = retriever
         self.docs = docs
         self.docs_dict = {}
@@ -77,13 +79,12 @@ class MathSolver:
                 ids.append(cid)
         return ids
 
-
     def _validate_refs(self, text: str) -> str:
         """校验回答中的引用是否存在，不存在的标注为无效引用."""
-        pattern = re.compile(r"\[REF:([^/]+)\]")
+        pattern = re.compile(r"\[REF:([^\]\n]+)\]")
 
         def repl(match: re.Match) -> str:
-            chunk_id = match.group(1)
+            chunk_id = match.group(1).strip()
             if chunk_id in self.docs_dict:
                 return match.group(0)
             return ""
@@ -106,7 +107,9 @@ class MathSolver:
 
         prompt = question
         if context_parts:
-            prompt += "\n\n以下词条供参考，请在需要时引用：\n" + "\n".join(context_parts)
+            prompt += "\n\n以下词条供参考，请在需要时引用：\n" + "\n".join(
+                context_parts
+            )
 
         user_msg = BaseMessage.make_user_message("user", prompt)
         rsp = self.agent.step(user_msg)
