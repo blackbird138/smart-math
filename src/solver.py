@@ -113,6 +113,7 @@ class MathSolver:
 
         user_msg = BaseMessage.make_user_message("user", prompt)
         rsp = self.agent.step(user_msg)
-
+        print(rsp.msgs[0].content)
         answer = self._validate_refs(rsp.msgs[0].content)
+        print(answer)
         return answer

@@ -226,7 +226,7 @@ async function onClickRef(e: MouseEvent) {
     }
     if (id) {
       const chunk = refMap.idMap[id];
-      if (chunk) {
+      if (chunk && chunk.content) {
         refContent.value = chunk.content;
         dialog.value = false;
         await nextTick();
