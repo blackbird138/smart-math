@@ -22,3 +22,17 @@ def test_list_chunks_filter():
     data = res.json()
     assert data["chunks"]
     assert all(c["chunk_type"] == "definition" for c in data["chunks"])
+
+
+def test_get_chunk():
+    cid = docs[0].id
+    res = client.get(f"/get_chunk?file_id={FILE_ID}&chunk_id={cid}")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["content"] == docs[0].page_content
+    assert data["chunk_type"] == docs[0].metadata.get("chunk_type", "")
+
+
+def test_get_chunk_not_found():
+    res = client.get(f"/get_chunk?file_id={FILE_ID}&chunk_id=missing")
+    assert res.status_code == 404
