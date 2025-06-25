@@ -1,5 +1,5 @@
 <template>
-  <v-container class="search-view">
+  <v-container class="search-view" @click="onClickRef">
     <v-row class="align-center">
       <v-col cols="12" md="4">
         <v-select v-model="selected" :items="files" label="选择文件" density="comfortable" />
@@ -30,6 +30,13 @@
       </v-expansion-panel>
     </v-expansion-panels>
     <p v-else class="mt-4">暂无结果</p>
+    <v-dialog v-model="dialog" max-width="600">
+      <v-card>
+        <v-card-text @click="onClickRef">
+          <div v-html="renderMarkdown(refContent)" />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -55,6 +62,9 @@ const md = new MarkdownIt({
   typographer: true,
 }).use(markdownItMathTemml)
 
+const dialog = ref(false)
+const refContent = ref('')
+
 function renderMarkdown(text: string): string {
   const rawHtml = md.render(text)
   return DOMPurify.sanitize(rawHtml)
@@ -77,6 +87,29 @@ async function search() {
 
 function open(id: string, page: number) {
   viewer.setFile(id, page)
+}
+
+async function loadRef(id: string) {
+  try {
+    const res = await fetch(`${API_BASE}/list_chunks?file_id=${selected.value}`)
+    const data = await res.json()
+    const item = (data.chunks || []).find((c: any) => c.id === id)
+    if (item) {
+      refContent.value = item.content
+      dialog.value = true
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+function onClickRef(e: MouseEvent) {
+  const target = (e.target as HTMLElement).closest('a') as HTMLAnchorElement | null
+  if (target && target.getAttribute('href')?.startsWith('ref:')) {
+    e.preventDefault()
+    const id = target.getAttribute('href')!.slice(4)
+    loadRef(id)
+  }
 }
 
 onMounted(async () => {
