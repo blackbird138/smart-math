@@ -43,12 +43,15 @@
       >
         <template #title>
           <div class="panel-title">
-            <strong
-              >{{ displayChunkType(item.metadata.chunk_type) }}:
-              {{
+            <strong>
+              {{ displayChunkType(item.metadata.chunk_type) }}
+              <template v-if="item.metadata.number">
+                {{ item.metadata.number }}
+              </template>
+              : {{
                 item.metadata.summary || item.text.slice(0, 50) + "..."
-              }}</strong
-            >
+              }}
+            </strong>
           </div>
         </template>
         <template #text>
@@ -157,6 +160,7 @@ async function loadRelated(id: string) {
     );
     const data = await res.json();
     related.value[id].items = data.related || [];
+    refMap.mergeItems(related.value[id].items);
   } catch (err) {
     console.error(err);
     related.value[id].items = [];
