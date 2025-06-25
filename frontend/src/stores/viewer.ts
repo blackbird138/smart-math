@@ -10,6 +10,7 @@ export const useViewerStore = defineStore("viewer", {
     setFile(id: string, page = 1) {
       this.fileId = id;
       this.page = page;
+      this.collapsed = false;
     },
     toggleCollapsed() {
       this.collapsed = !this.collapsed;

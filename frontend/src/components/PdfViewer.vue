@@ -1,6 +1,11 @@
 <template>
   <div class="viewer-container">
-    <v-btn icon class="collapse-btn" @click="viewer.toggleCollapsed()">
+    <v-btn
+      icon
+      class="collapse-btn"
+      v-show="!viewer.collapsed"
+      @click="viewer.toggleCollapsed()"
+    >
       <v-icon>{{
         viewer.collapsed ? "mdi-chevron-left" : "mdi-chevron-right"
       }}</v-icon>
@@ -48,10 +53,13 @@ watch(
 
 <style scoped>
 .viewer-container {
-  position: relative;
+  position: sticky;
+  top: 0;
+  width: 50%;
+  height: 100vh;
 }
 .pdf-viewer {
-  width: 50%;
+  width: 100%;
   padding: 1rem;
   position: relative;
 }
