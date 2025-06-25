@@ -36,3 +36,13 @@ def test_get_chunk():
 def test_get_chunk_not_found():
     res = client.get(f"/get_chunk?file_id={FILE_ID}&chunk_id=missing")
     assert res.status_code == 404
+
+
+def test_solve(monkeypatch):
+    def fake_solve(self, q):
+        return "dummy"
+
+    monkeypatch.setattr("api_server.MathSolver.solve", fake_solve)
+    res = client.post("/solve", json={"file_id": FILE_ID, "question": "test"})
+    assert res.status_code == 200
+    assert res.json()["answer"] == "dummy"
