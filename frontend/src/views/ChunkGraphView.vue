@@ -172,6 +172,7 @@ async function loadRelated(id: string) {
     );
     const data = await res.json();
     related.value[id].items = data.related || [];
+    refMap.mergeItems(related.value[id].items);
   } catch (err) {
     console.error(err);
     related.value[id].items = [];

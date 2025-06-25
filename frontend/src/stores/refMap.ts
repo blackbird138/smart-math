@@ -17,5 +17,22 @@ export const useRefMapStore = defineStore('refMap', {
       this.idMap = idMap
       this.refMap = refMap
     }
+    ,
+    /**
+     * 合并新的引用映射
+     * @param items 包含 id、chunk_type、number 等字段的数组
+     */
+    mergeItems(items: any[]) {
+      for (const item of items) {
+        if (!item?.id) continue
+        this.idMap[item.id] = item
+        const type = item.chunk_type?.toLowerCase()
+        const num = item.number
+        if (type && num) {
+          if (!this.refMap[type]) this.refMap[type] = {}
+          this.refMap[type][num] = item.id
+        }
+      }
+    }
   }
 })
