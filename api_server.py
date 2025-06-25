@@ -219,3 +219,27 @@ async def list_related(file_id: str, chunk_id: str):
                 "number": c.metadata.get("number", "")
             })
     return {"related": result}
+
+
+@app.get("/get_chunk")
+async def get_chunk(file_id: str, chunk_id: str):
+    """根据 ID 获取指定 chunk 的内容、类型及编号"""
+    chunks = file_docs.get(file_id)
+    if chunks is None:
+        path = Path("data/relation_store") / file_id / "chunks.json"
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="chunks not found")
+        with path.open("r", encoding="utf-8") as f:
+            json_list = json.load(f)
+            chunks = [ParagraphChunk.from_json(s) for s in json_list]
+        file_docs[file_id] = chunks
+
+    for c in chunks:
+        if c.id == chunk_id:
+            return {
+                "content": c.page_content,
+                "chunk_type": c.metadata.get("chunk_type", ""),
+                "number": c.metadata.get("number", ""),
+            }
+
+    raise HTTPException(status_code=404, detail="chunk not found")
