@@ -80,8 +80,7 @@ import DOMPurify from 'dompurify'
 import { API_BASE } from '../api'
 import { useViewerStore } from '../stores/viewer'
 import { useRefMapStore } from '../stores/refMap'
-import { displayChunkType } from '../utils'
-import { linkRefs } from '../linkRefs'
+import { displayChunkType, linkRefs } from '../utils'
 
 const files = ref<string[]>([])
 const selectedFile = ref('')
@@ -106,7 +105,7 @@ const md = new MarkdownIt({
 function renderMarkdown(text: string): string {
   const raw = md.render(text)
   const sanitized = DOMPurify.sanitize(raw)
-  return linkRefs(sanitized)
+  return linkRefs(sanitized, refMap.refMap)
 }
 
 async function loadFiles() {
@@ -128,11 +127,18 @@ async function loadChunks() {
     const res = await fetch(`${API_BASE}/list_chunks?file_id=${selectedFile.value}${typeParam}`)
     const data = await res.json()
     chunks.value = data.chunks || []
-    const m: Record<string, any> = {}
+    const idMap: Record<string, any> = {}
+    const refMapData: Record<string, Record<string, string>> = {}
     for (const c of data.chunks || []) {
-      m[c.id] = c
+      idMap[c.id] = c
+      const type = c.chunk_type?.toLowerCase()
+      const num = c.number
+      if (type && num) {
+        if (!refMapData[type]) refMapData[type] = {}
+        refMapData[type][num] = c.id
+      }
     }
-    refMap.setMap(m)
+    refMap.setMap(idMap, refMapData)
   } finally {
     loading.value = false
   }
@@ -172,11 +178,20 @@ async function loadRef(id: string) {
 }
 
 function onClickRef(e: MouseEvent) {
-  const target = (e.target as HTMLElement).closest('a') as HTMLAnchorElement | null
-  if (target && target.getAttribute('href')?.startsWith('ref:')) {
-    e.preventDefault()
-    const id = target.getAttribute('href')!.slice(4)
-    loadRef(id)
+  const target = (e.target as HTMLElement).closest('.ref-link') as HTMLElement | null
+  if (target) {
+    const type = target.getAttribute('data-type') || ''
+    const num = target.getAttribute('data-num') || ''
+    const id = refMap.refMap[type]?.[num]
+    if (id) {
+      const chunk = refMap.idMap[id]
+      if (chunk) {
+        refContent.value = chunk.content
+        dialog.value = true
+      } else {
+        loadRef(id)
+      }
+    }
   }
 }
 

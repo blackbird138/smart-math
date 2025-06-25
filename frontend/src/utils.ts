@@ -14,19 +14,27 @@ export function displayChunkType(type: string): string {
 
 export const refAliases: Record<string, string> = {
   definition: 'definition',
+  '定义': 'definition',
   def: 'definition',
   defn: 'definition',
   theorem: 'theorem',
+  '定理': 'theorem',
   thm: 'theorem',
   lemma: 'lemma',
+  '引理': 'lemma',
   lem: 'lemma',
   corollary: 'corollary',
+  '推论': 'corollary',
   cor: 'corollary',
   example: 'example',
+  '例': 'example',
+  '例子': 'example',
   ex: 'example',
   exercise: 'exercise',
+  '练习': 'exercise',
   exer: 'exercise',
   remark: 'remark',
+  '注': 'remark',
   rmk: 'remark',
 };
 
@@ -37,7 +45,7 @@ export function linkRefs(
   const aliases = Object.keys(refAliases)
     .map(key => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
     .join('|');
-  const regex = new RegExp(`\\b(${aliases})\\s*(\\d+(?:\\.\\d+)*)`, 'gi');
+  const regex = new RegExp(`(${aliases})\\s*(\\d+(?:\\.\\d+)*)`, 'gi');
   return html.replace(regex, (match, alias, num) => {
     const type = refAliases[alias.toLowerCase()] || alias.toLowerCase();
     if (refs[type] && refs[type][num]) {
