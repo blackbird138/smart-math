@@ -34,12 +34,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import MarkdownIt from 'markdown-it'
 import markdownItMathTemml from 'markdown-it-math/temml'
 import DOMPurify from 'dompurify'
 import { API_BASE } from '../api'
 import { useViewerStore } from '../stores/viewer'
+import { useRefMapStore } from '../stores/refMap'
 import { displayChunkType } from '../utils'
 const query = ref('')
 const results = ref<any[]>([])
@@ -48,6 +49,7 @@ const loading = ref(false)
 const files = ref<string[]>([])
 const selected = ref('')
 const viewer = useViewerStore()
+const refMap = useRefMapStore()
 
 const md = new MarkdownIt({
   html: false,
@@ -67,6 +69,7 @@ async function search() {
     const res = await fetch(`${API_BASE}/search?file_id=${selected.value}&q=${encodeURIComponent(query.value)}`)
     const data = await res.json()
     results.value = data.results || []
+    await loadRefMap()
   } catch (err) {
     console.error(err)
     results.value = []
@@ -79,6 +82,21 @@ function open(id: string, page: number) {
   viewer.setFile(id, page)
 }
 
+async function loadRefMap() {
+  if (!selected.value) return
+  try {
+    const res = await fetch(`${API_BASE}/list_chunks?file_id=${selected.value}`)
+    const data = await res.json()
+    const m: Record<string, any> = {}
+    for (const c of data.chunks || []) {
+      m[c.id] = c
+    }
+    refMap.setMap(m)
+  } catch (err) {
+    console.error(err)
+  }
+}
+
 onMounted(async () => {
   try {
     const res = await fetch(`${API_BASE}/list_files`)
@@ -87,9 +105,14 @@ onMounted(async () => {
     if (files.value.length && !selected.value) {
       selected.value = files.value[0]
     }
+    await loadRefMap()
   } catch (err) {
     console.error(err)
   }
+})
+
+watch(selected, () => {
+  loadRefMap()
 })
 
 </script>
