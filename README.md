@@ -2,6 +2,8 @@
 
 Smart Math 是一个面向数学文档解析和问答的实验项目。项目通过 Mineru 服务解析 PDF 内容，使用 RAG（Retrieval Augmented Generation）方式将检索到的文档与 LLM 结合来生成答案。
 
+更多详情请参见 [架构文档](docs/architecture.md)。
+
 ## 项目结构
 - `mineru_service/`：FastAPI 服务，提供 `/parse` 接口解析 PDF，通过 Dockerfile 构建镜像
 - `src/`：数据清洗、文本切片和向量检索的核心代码
