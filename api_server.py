@@ -9,7 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from tempfile import NamedTemporaryFile
 from pathlib import Path
 from PIL import Image
-import pytesseract
+import requests
+from io import BytesIO
 import shutil
 import json
 import yaml
@@ -124,9 +125,21 @@ async def image_ocr(file: UploadFile = File(...)):
         tmp.write(await file.read())
         tmp_path = tmp.name
     try:
-        img = Image.open(tmp_path)
-        text = pytesseract.image_to_string(img, config="--psm 6")
-        latex = f"${text.strip()}$"
+        image = Image.open(tmp_path).convert("RGB")
+        pdf_buffer = BytesIO()
+        image.save(pdf_buffer, format="PDF")
+        pdf_buffer.seek(0)
+
+        res = requests.post(
+            "http://localhost:8000/parse",
+            files={"file": ("image.pdf", pdf_buffer.getvalue(), "application/pdf")},
+            data={"dump_md": False, "draw_layout": False},
+            timeout=60,
+        )
+        res.raise_for_status()
+        blocks = res.json()
+        equations = [b["text"] for b in blocks if "text" in b]
+        latex = "\n".join(equations) if equations else ""
         return {"latex": latex}
     finally:
         os.remove(tmp_path)

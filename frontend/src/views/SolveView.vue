@@ -16,7 +16,6 @@
           density="comfortable"
           auto-grow
           rows="4"
-          @keyup.enter="solve"
         />
       </v-col>
       <v-col cols="12" md="2">
@@ -28,10 +27,10 @@
     <v-row class="align-center mt-2">
       <v-col cols="12" md="8">
         <v-file-input
-          v-model="imageFile"
           label="上传图片识别"
           accept="image/*"
           density="comfortable"
+          @change="onImageChange"
         />
       </v-col>
       <v-col cols="12" md="4">
@@ -191,6 +190,13 @@ onMounted(loadFiles)
 watch(selected, () => {
   loadRefMap()
 })
+
+function onImageChange(e: Event) {
+  const target = e.target as HTMLInputElement
+  if (target.files && target.files[0]) {
+    imageFile.value = target.files[0]
+  }
+}
 
 async function ocrImage() {
   if (!imageFile.value) return
