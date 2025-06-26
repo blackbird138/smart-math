@@ -4,6 +4,8 @@ import re
 import uuid
 from typing import List, Dict, Any
 from src.datamodel import ParagraphChunk
+from src.rag.embedding import EmbeddingManager
+import numpy as np
 
 # 1. 定义标题正则
 PATTERNS = {
@@ -61,6 +63,54 @@ def chunk_documents(docs: List[ParagraphChunk], MAX_TOKEN: int=500) -> List[Para
             metadata=buf_meta,
         ))
         i = j  # 跳过已经合并的段
+    return result
+
+
+def _cosine_sim(a: List[float], b: List[float]) -> float:
+    """计算两个向量的余弦相似度"""
+    va, vb = np.array(a), np.array(b)
+    denom = np.linalg.norm(va) * np.linalg.norm(vb)
+    if denom == 0:
+        return 0.0
+    return float(np.dot(va, vb) / denom)
+
+
+def merge_by_embedding(
+    docs: List[ParagraphChunk],
+    emb_mgr: EmbeddingManager,
+    threshold: float = 0.85,
+) -> List[ParagraphChunk]:
+    """按相邻段落语义相似度合并文档"""
+    if not docs:
+        return []
+
+    def _text(p: ParagraphChunk) -> str:
+        return p.page_content if isinstance(p.page_content, str) else "\n".join(p.page_content)
+
+    result: list[ParagraphChunk] = []
+    i = 0
+    while i < len(docs):
+        cur = docs[i]
+        merged_text = [_text(cur)]
+        meta = cur.metadata.copy() if cur.metadata else {}
+        meta["merged_ids"] = [cur.id]
+        j = i + 1
+        cur_vec = emb_mgr.embed(merged_text[-1])
+        while j < len(docs):
+            next_text = _text(docs[j])
+            next_vec = emb_mgr.embed(next_text)
+            if _cosine_sim(cur_vec, next_vec) < threshold:
+                break
+            merged_text.append(next_text)
+            meta["merged_ids"].append(docs[j].id)
+            cur_vec = emb_mgr.embed("\n".join(merged_text))
+            j += 1
+
+        result.append(
+            ParagraphChunk(id=uuid.uuid4().hex, page_content=merged_text, metadata=meta)
+        )
+        i = j
+
     return result
 
 # def split_by_heading(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
