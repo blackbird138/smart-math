@@ -157,41 +157,85 @@ def llm_call(batch):
     return json.loads(_step())  # ⇐ 保证返回 python 对象
 
 
-def filter_and_convert(chunks: List[ParagraphChunk]) -> (List[ParagraphChunk], List[ParagraphChunk]):
-    pure_chunks = []
-    for chunk in chunks:
-        pure_chunks.append(
-            {
-                "chunk_type": chunk.metadata["chunk_type"],
-                "page_content": chunk.page_content,
-            }
-        )
+def filter_and_convert(
+    chunks: List[ParagraphChunk], max_retry: int = 3
+) -> (List[ParagraphChunk], List[ParagraphChunk]):
+    """调用 LLM 过滤并解析 chunk，可对编号识别失败的条目进行重复处理。"""
 
-    batches = build_batches(pure_chunks)  # 先按 token 切批
-    candidate_list = []
-    for batch in batches:
-        candidate_list.extend(llm_call(batch))
+    remaining = list(chunks)
+    results_dict: Dict[str, ParagraphChunk] = {}
+    faild_chunks: List[ParagraphChunk] = []
+    last_candidate: Dict[str, ParagraphChunk] = {}
+    attempt = 0
 
-    try:
-        validate(candidate_list, FILTER_SCHEMA)
-    except ValidationError:
-        print("Schema 校验失败")
+    while remaining and attempt < max_retry:
+        pure_chunks = []
+        for chunk in remaining:
+            pure_chunks.append(
+                {
+                    "chunk_type": chunk.metadata["chunk_type"],
+                    "page_content": chunk.page_content,
+                }
+            )
 
-    results, faild_chunks = [], []
-    for item, chunk in zip(candidate_list, chunks):
-        if item["state_code"] == "001":
-            content = normalize_latex_block(item["content"])
-            new_chunk = ParagraphChunk(id=chunk.id, page_content=content, metadata=chunk.metadata)
-            new_chunk.metadata["summary"] = item["summary"]
-            new_chunk.metadata["number"] = item.get("number", "")
-            print("----------------------------------------------")
-            print(item)
-            print(chunk)
-            print(new_chunk)
-            results.append(new_chunk)
-        elif item["state_code"] == "002":
-            faild_chunks.append(ParagraphChunk(id=chunk.id, page_content=chunk.page_content, metadata=chunk.metadata))
+        batches = build_batches(pure_chunks)  # 先按 token 切批
+        candidate_list = []
+        for batch in batches:
+            candidate_list.extend(llm_call(batch))
 
+        try:
+            validate(candidate_list, FILTER_SCHEMA)
+        except ValidationError:
+            print("Schema 校验失败")
+
+        next_round = []
+        for item, chunk in zip(candidate_list, remaining):
+            if item["state_code"] == "001":
+                content = normalize_latex_block(item["content"])
+                new_chunk = ParagraphChunk(
+                    id=chunk.id, page_content=content, metadata=chunk.metadata
+                )
+                new_chunk.metadata["summary"] = item["summary"]
+                new_chunk.metadata["number"] = item.get("number", "")
+                last_candidate[chunk.id] = new_chunk
+
+                num = new_chunk.metadata["number"].strip()
+                text = (
+                    "".join(new_chunk.page_content)
+                    if isinstance(new_chunk.page_content, list)
+                    else new_chunk.page_content
+                )
+                if num and re.search(re.escape(num), text):
+                    results_dict[chunk.id] = new_chunk
+                else:
+                    next_round.append(chunk)
+            elif item["state_code"] == "002":
+                faild_chunks.append(
+                    ParagraphChunk(
+                        id=chunk.id,
+                        page_content=chunk.page_content,
+                        metadata=chunk.metadata,
+                    )
+                )
+            else:
+                faild_chunks.append(
+                    ParagraphChunk(
+                        id=chunk.id,
+                        page_content=chunk.page_content,
+                        metadata=chunk.metadata,
+                    )
+                )
+
+        remaining = next_round
+        attempt += 1
+
+    # 已经达到重试次数，使用最后一次的候选结果
+    for chunk in remaining:
+        cand = last_candidate.get(chunk.id)
+        if cand:
+            results_dict[chunk.id] = cand
+
+    results = [results_dict[c.id] for c in chunks if c.id in results_dict]
     return results, faild_chunks
 
 
