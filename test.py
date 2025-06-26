@@ -1,18 +1,16 @@
-import requests, pathlib, json
+# tests/test_preprocessing.py
 
-pdf_path=pathlib.Path("data/samples.pdf").resolve()
+import json
+import pytest
 
-def parse_pdf(url="http://localhost:8000/parse"):
-    with pdf_path.open("rb") as f:
-        r = requests.post(
-            url,
-            files={"file": f},
-            data={
-                "dump_md": "true",
-                "draw_layout": "true"
-            }
-        )
-    r.raise_for_status()
-    print(r.json())
+from pathlib import Path
+from src.preprocessing.cleaner import clean_documents
+from src.preprocessing.filterer import chunk_and_filter
+from src.datamodel import ParagraphChunk
 
-parse_pdf()
+DATA_DIR = Path(__file__).parent / "data" / "relation_store" / "1f7b64f2b9d94a8eae5fa0ca05fbb2ff" / "chunks.json"
+
+with DATA_DIR.open("r", encoding="utf-8") as f:
+    json_str_list = json.load(f)
+    docs = [ParagraphChunk.from_json(s) for s in json_str_list]
+print(docs)

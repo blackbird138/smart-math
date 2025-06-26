@@ -29,10 +29,10 @@ FILTER_SCHEMA = {
     "type": "array",
     "items": {
         "type": "object",
-        "required": ["state_code", "prefix_idx", "summary", "number"],
+        "required": ["state_code", "content", "summary", "number"],
         "properties": {
             "state_code": {"type": "string"},
-            "prefix_idx": {"type": "integer"},
+            "content": {"type": "string"},
             "summary": {"type": "string"},
             "number": {"type": "string"},
         },
@@ -53,16 +53,15 @@ sys_msg = BaseMessage.make_assistant_message(
         对列表中的每个 chunk 按照输入顺序依次执行以下操作：
         1. 判断 page_content 中一个前缀的内容是否与 chunk_type 指定的类型相符（例如 chunk_type="theorem" 时，判断其是否真的是定理类型内容）。
         2. 如果判断为真，且 page_content 没有缺失的内容：
-                     a. 将 `prefix_idx` 置为符合要求前缀包含的段落数量（page_content 的下标）。
-           b. 不直接输出前缀文本，由系统在本地根据下标计算真实内容。
-           c. 将 `summary` 置为该 chunk 内容的一句话（一个短词）总结。
-           d. 将 `state_code` 置为 "001"。
-           e. 若 chunk 标题中包含编号（如 "定理 4.1.3"），提取编号（如 "4.1.3"）填入 `number` 字段；否则 `number` 置为空字符串。
+           a. 将 `content` 置为符合要求的那个 page_content 的前缀，一定要保证内容的完整，只要前后两段后段是前端的补充说明就要放在一起。
+           b. 讲 `summary` 置为该 chunk 内容的一句话（一个短词）总结。
+           c. 将 `state_code` 置为 "001"。
+           d. 若 chunk 标题中包含编号（如 "定理 4.1.3"），提取编号（如 "4.1.3"）填入 `number` 字段；否则 `number` 置为空字符串。
         3. 如果判断为真，但 page_content 有缺失的内容，如以“以下”，“如下”作为结尾：
-           a. 将 `prefix_idx` 置为 0，并将 `summary` 置为空字符串。
+           a. 将 `content` 和 `summary` 置为空字符串。
            b. 将 `state_code` 置为 "002"。
         4. 如果判断为假：
-           a. 将 `prefix_idx` 置为 0，并将 `summary` 置为空字符串。
+           a. 将 `content` 和 `summary` 置为空字符串。
            b. 将 `state_code` 置为 "003"。
         最终输出一个 JSON 列表。
         """
@@ -164,14 +163,13 @@ def filter_and_convert(chunks: List[ParagraphChunk]) -> (List[ParagraphChunk], L
     results, faild_chunks = [], []
     for item, chunk in zip(candidate_list, chunks):
         if item["state_code"] == "001":
-            idx = int(item.get("prefix_idx", 0))
-            if isinstance(chunk.page_content, list):
-                prefix = "\n".join(chunk.page_content[: idx]).strip()
-            else:
-                prefix = chunk.page_content
-            new_chunk = ParagraphChunk(id=chunk.id, page_content=prefix, metadata=chunk.metadata)
+            new_chunk = ParagraphChunk(id=chunk.id, page_content=item["content"], metadata=chunk.metadata)
             new_chunk.metadata["summary"] = item["summary"]
             new_chunk.metadata["number"] = item.get("number", "")
+            print("----------------------------------------------")
+            print(item)
+            print(chunk)
+            print(new_chunk)
             results.append(new_chunk)
         elif item["state_code"] == "002":
             faild_chunks.append(ParagraphChunk(id=chunk.id, page_content=chunk.page_content, metadata=chunk.metadata))

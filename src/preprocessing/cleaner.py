@@ -13,7 +13,6 @@ def remove_newlines(text: str) -> str:
 def clean_one_piece(doc: ParagraphChunk) -> ParagraphChunk:
     options = [
         ("replace_unicode_quotes", {}),  # 替换Unicode引号
-        ("clean_dashes", {}),  # 清理破折号
         ("clean_extra_whitespace", {}),  # 清理多余空白
     ]
 
