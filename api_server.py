@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
+import asyncio
 from pydantic import BaseModel
 from dotenv import set_key
 import os
@@ -302,9 +303,12 @@ async def solve_stream(req: SolveRequest):
             retr = None
         file_managers[req.file_id] = retr
     solver = MathSolver(retr, docs)
-
-    def gen():
+    async def gen():
         for chunk in solver.stream_solve(req.question):
-            yield chunk
+            yield chunk.encode("utf-8")
+            await asyncio.sleep(0)
+
+    headers = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+    return StreamingResponse(gen(), media_type="text/plain; charset=utf-8", headers=headers)
 
     return StreamingResponse(gen(), media_type="text/plain")
