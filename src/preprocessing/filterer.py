@@ -12,7 +12,12 @@ from camel.models import ModelFactory
 from camel.types import ModelPlatformType, OpenAIBackendRole
 from camel.messages import BaseMessage
 from src.datamodel import ParagraphChunk
-from src.preprocessing.chunker import chunk_documents, detect_header_type
+from src.preprocessing.chunker import (
+    chunk_documents,
+    detect_header_type,
+    merge_by_embedding,
+)
+from src.rag.embedding import EmbeddingManager
 
 load_dotenv()
 
@@ -198,4 +203,15 @@ def chunk_and_filter(docs: List[ParagraphChunk], TOKEN_LIM: int = 500, FAILD_LIM
     _result, _faild_chunks = filter_and_convert(retry_chunks)
 
     result.extend(_result)
+    return result
+
+
+def chunk_and_filter_by_similarity(
+    docs: List[ParagraphChunk],
+    emb_mgr: EmbeddingManager,
+    threshold: float = 0.85,
+) -> List[ParagraphChunk]:
+    """使用向量相似度合并后再过滤"""
+    merged = merge_by_embedding(docs, emb_mgr, threshold)
+    result, _ = filter_and_convert(merged)
     return result
