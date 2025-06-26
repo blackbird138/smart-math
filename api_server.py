@@ -24,6 +24,7 @@ from src.graph.pair_reranker import PairReranker
 from src.graph.relation_builder import RelationBuilder
 from src.datamodel import ParagraphChunk
 from src.solver import MathSolver
+from src.utils.preprocess import sanitize_prompt
 
 app = FastAPI()
 
@@ -307,7 +308,8 @@ async def solve(req: SolveRequest):
             retr = None
         file_managers[req.file_id] = retr
     solver = MathSolver(retr, docs)
-    answer = solver.solve(req.question)
+    question = sanitize_prompt(req.question)
+    answer = solver.solve(question)
     return {"answer": answer}
 
 
@@ -333,8 +335,9 @@ async def solve_stream(req: SolveRequest):
             retr = None
         file_managers[req.file_id] = retr
     solver = MathSolver(retr, docs)
+    question = sanitize_prompt(req.question)
     async def gen():
-        for chunk in solver.stream_solve(req.question):
+        for chunk in solver.stream_solve(question):
             yield chunk.encode("utf-8")
             await asyncio.sleep(0)
 

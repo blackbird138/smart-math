@@ -46,3 +46,20 @@ def test_solve(monkeypatch):
     res = client.post("/solve", json={"file_id": FILE_ID, "question": "test"})
     assert res.status_code == 200
     assert res.json()["answer"] == "dummy"
+
+
+def test_solve_sanitizes(monkeypatch):
+    captured = {}
+
+    def fake_solve(self, q):
+        captured["q"] = q
+        return "dummy"
+
+    monkeypatch.setattr("api_server.MathSolver.solve", fake_solve)
+    res = client.post(
+        "/solve",
+        json={"file_id": FILE_ID, "question": "包含暴力指令"},
+    )
+    assert res.status_code == 200
+    assert "暴力" not in captured["q"]
+
