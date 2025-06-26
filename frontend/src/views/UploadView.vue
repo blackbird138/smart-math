@@ -59,5 +59,7 @@ async function upload() {
 <style scoped>
 .upload-view {
   padding: 1rem;
+  width: 70%;
+  margin: 0 auto;
 }
 </style>
