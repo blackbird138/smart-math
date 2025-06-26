@@ -12,12 +12,7 @@ from camel.models import ModelFactory
 from camel.types import ModelPlatformType, OpenAIBackendRole
 from camel.messages import BaseMessage
 from src.datamodel import ParagraphChunk
-from src.preprocessing.chunker import (
-    chunk_documents,
-    detect_header_type,
-    merge_by_embedding,
-)
-from src.rag.embedding import EmbeddingManager
+from src.preprocessing.chunker import chunk_documents, detect_header_type
 
 load_dotenv()
 
@@ -52,17 +47,17 @@ sys_msg = BaseMessage.make_assistant_message(
         你是一个数学文档处理助手。
         输入：一个 JSON 格式的 chunk 列表，每个 chunk 都包含：
           - chunk_type: 指定的类型（definition/theorem/lemma/exercise等）
-          - page_content: 原始文本内容，可能有缺失或多余的内容，多余的内容一定是后缀。
+          - page_content: 一个 List，包含以段落划分原始文本内容，可能有缺失或多余的内容，多余的内容一定是 List 的一个后缀。
 
         任务：
         对列表中的每个 chunk 按照输入顺序依次执行以下操作：
         1. 判断 page_content 中一个前缀的内容是否与 chunk_type 指定的类型相符（例如 chunk_type="theorem" 时，判断其是否真的是定理类型内容）。
         2. 如果判断为真，且 page_content 没有缺失的内容：
-           a. 将 `content` 置为符合要求的那个 page_content 的前缀。
+           a. 将 `content` 置为符合要求的那个 page_content 的前缀，一定要保证内容的完整，只要前后两段后段是前端的补充说明就要放在一起。
            b. 讲 `summary` 置为该 chunk 内容的一句话（一个短词）总结。
            c. 将 `state_code` 置为 "001"。
            d. 若 chunk 标题中包含编号（如 "定理 4.1.3"），提取编号（如 "4.1.3"）填入 `number` 字段；否则 `number` 置为空字符串。
-        3. 如果判断为真，但 page_content 有缺失的内容：
+        3. 如果判断为真，但 page_content 有缺失的内容，如以“以下”，“如下”作为结尾：
            a. 将 `content` 和 `summary` 置为空字符串。
            b. 将 `state_code` 置为 "002"。
         4. 如果判断为假：
@@ -203,15 +198,4 @@ def chunk_and_filter(docs: List[ParagraphChunk], TOKEN_LIM: int = 500, FAILD_LIM
     _result, _faild_chunks = filter_and_convert(retry_chunks)
 
     result.extend(_result)
-    return result
-
-
-def chunk_and_filter_by_similarity(
-    docs: List[ParagraphChunk],
-    emb_mgr: EmbeddingManager,
-    threshold: float = 0.85,
-) -> List[ParagraphChunk]:
-    """使用向量相似度合并后再过滤"""
-    merged = merge_by_embedding(docs, emb_mgr, threshold)
-    result, _ = filter_and_convert(merged)
     return result

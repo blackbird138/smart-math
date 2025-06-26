@@ -24,7 +24,7 @@
       </v-col>
     </v-row>
     <v-progress-linear indeterminate class="mt-4" v-if="loading" />
-    <div v-else-if="answer" class="mt-4" v-html="renderMarkdown(answer)"></div>
+    <div v-if="answer" class="mt-4" v-html="renderMarkdown(answer)"></div>
     <p v-else class="mt-4">暂无解答</p>
     <v-dialog v-model="dialog" max-width="600">
       <v-card>
