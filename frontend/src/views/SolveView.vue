@@ -1,7 +1,7 @@
 <template>
   <v-container class="solve-view" @click="onClickRef">
-    <v-row class="align-center">
-      <v-col cols="12" md="4">
+    <v-row class="justify-center">
+      <v-col cols="12">
         <v-select
           v-model="selected"
           :items="files"
@@ -9,7 +9,9 @@
           density="comfortable"
         />
       </v-col>
-      <v-col cols="12" md="6">
+    </v-row>
+    <v-row class="mt-2">
+      <v-col cols="12">
         <v-textarea
           v-model="question"
           label="输入题目"
@@ -18,8 +20,10 @@
           rows="4"
         />
       </v-col>
-      <v-col cols="12" md="2">
-        <v-btn color="primary" class="mt-2 mt-md-0" @click="solve" :loading="loading">
+    </v-row>
+    <v-row class="justify-end mt-2">
+      <v-col cols="auto">
+        <v-btn color="primary" @click="solve" :loading="loading">
           解答
         </v-btn>
       </v-col>
@@ -34,7 +38,13 @@
         />
       </v-col>
       <v-col cols="12" md="4">
-        <v-btn color="primary" class="mt-2 mt-md-0" @click="ocrImage" :disabled="!imageFile">
+        <v-btn
+          color="primary"
+          class="mt-2 mt-md-0"
+          @click="ocrImage"
+          :disabled="!imageFile || ocrLoading"
+          :loading="ocrLoading"
+        >
           图片OCR
         </v-btn>
       </v-col>
@@ -68,6 +78,7 @@ const files = ref<string[]>([])
 const selected = ref('')
 const refMap = useRefMapStore()
 const imageFile = ref<File | null>(null)
+const ocrLoading = ref(false)
 
 const dialog = ref(false)
 const refContent = ref('')
@@ -204,6 +215,7 @@ async function ocrImage() {
   const formData = new FormData()
   formData.append('file', imageFile.value)
   try {
+    ocrLoading.value = true
     const res = await fetch(`${API_BASE}/image_ocr`, {
       method: 'POST',
       body: formData
@@ -212,6 +224,8 @@ async function ocrImage() {
     if (data.latex) question.value = data.latex
   } catch (err) {
     console.error(err)
+  } finally {
+    ocrLoading.value = false
   }
 }
 </script>
@@ -219,6 +233,7 @@ async function ocrImage() {
 <style scoped>
 .solve-view {
   padding: 1rem;
-  width: 100%;
+  width: 70%;
+  margin: 0 auto;
 }
 </style>
