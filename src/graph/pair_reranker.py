@@ -1,6 +1,5 @@
 # src/graph/pair_reranker.py
 
-import os
 from src.graph.siliconflow_reranker import SiliconflowReranker
 
 class PairReranker:
@@ -9,8 +8,14 @@ class PairReranker:
         self.batch = batch_size
 
     def score_pairs(self, pairs):
-        # 可按 batch_size 切分后调 remote.embed_list
+        """对文本对进行重排序并返回得分."""
         scores = []
-        for i in range(0, len(pairs), self.batch):
-            scores.extend(self.remote.embed_list(pairs[i:i+self.batch]))
+        for pair in pairs:
+            if "\n" in pair:
+                a, b = pair.split("\n", 1)
+            else:
+                a, b = pair, ""
+            score = self.remote.rerank(a, [b])[0]
+            scores.append(score)
+
         return scores
