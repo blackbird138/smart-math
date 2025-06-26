@@ -47,4 +47,4 @@ PYTHONPATH=.. pytest
 ```
 
 ## 版权声明
-项目目前没有 LICENSE 文件，如需使用请在使用前补充相应的协议。
+本项目基于 MIT 许可证发布，详见 LICENSE 文件。
