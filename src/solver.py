@@ -10,6 +10,8 @@ from camel.models import ModelFactory
 from camel.messages import BaseMessage
 from camel.types import ModelPlatformType
 
+from src.utils.logger import get_logger
+
 from src.datamodel import ParagraphChunk
 from src.rag.retriever import RetrieverManager
 
@@ -45,6 +47,8 @@ _system_msg = BaseMessage.make_assistant_message(
     ),
 )
 
+logger = get_logger(__name__)
+
 
 class MathSolver:
     def __init__(
@@ -60,14 +64,17 @@ class MathSolver:
             model=_model,
             output_language="中文",
         )
+        logger.info("MathSolver initialized with %d docs", len(self.docs))
 
     def search_chunks(self, query: str, top_k: int = 10) -> List[str]:
         r"""查询文档库里相关的词条（定理/命题/定义 等）。"""
+        logger.info("Searching chunks for query: %s", query)
         hits = []
         if self.retriever is not None:
             try:
                 hits = self.retriever.retrieve(query, top_k=top_k)
-            except Exception:
+            except Exception as e:
+                logger.error("Retrieve failed: %s", e)
                 hits = []
         if not hits:
             return []
@@ -77,6 +84,7 @@ class MathSolver:
             cid = md.get("chunk_id")
             if cid:
                 ids.append(cid)
+        logger.info("Retrieved %d related chunks", len(ids))
         return ids
 
     def _validate_refs(self, text: str) -> str:
@@ -94,6 +102,7 @@ class MathSolver:
     def solve(self, question: str) -> str:
         """结合检索结果回答问题并校验引用."""
         # 调用检索获取相关词条列表
+        logger.info("Solving question via LLM")
         chunk_ids = self.search_chunks(question, top_k=10)
         context_parts = []
         for idx, cid in enumerate(chunk_ids, 1):
@@ -113,13 +122,13 @@ class MathSolver:
 
         user_msg = BaseMessage.make_user_message("user", prompt)
         rsp = self.agent.step(user_msg)
-        print(rsp.msgs[0].content)
         answer = self._validate_refs(rsp.msgs[0].content)
-        print(answer)
+        logger.info("LLM answered: %s", answer)
         return answer
 
     def stream_solve(self, question: str):
         """以流式方式返回解答过程."""
+        logger.info("Streaming solution via LLM")
         chunk_ids = self.search_chunks(question, top_k=10)
         context_parts = []
         for idx, cid in enumerate(chunk_ids, 1):
@@ -159,3 +168,4 @@ class MathSolver:
         final = self._validate_refs(acc)
         if final != acc:
             yield "\n" + final
+        logger.info("LLM streaming completed")

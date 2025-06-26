@@ -8,6 +8,9 @@ from src.datamodel import ParagraphChunk
 from src.rag.retriever import RetrieverManager
 from .pair_reranker import PairReranker
 from .relation_builder import RelationBuilder
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class GraphBuilder:
@@ -22,8 +25,10 @@ class GraphBuilder:
         self.top_k = top_k
         self.base_dir = Path(base_dir)
         self.file_id = file_id
+        logger.info("GraphBuilder initialized for %s", file_id)
 
     def _build_pairs(self, chunks: List[ParagraphChunk]) -> List[tuple[str, str, float]]:
+        logger.info("Building candidate pairs")
         pairs = list(self.retriever.topk_pairs(chunks))
         if not pairs:
             return []
@@ -36,7 +41,9 @@ class GraphBuilder:
         pair_inputs = [f"{summaries[h]}\n{summaries[t]}" for h, t, _ in pairs]
         scores = self.reranker.score_pairs(pair_inputs)
         ranked = sorted(zip(pairs, scores), key=lambda x: x[1], reverse=True)
-        return [(h, t, s) for (h, t, _), s in ranked[: self.top_k]]
+        result = [(h, t, s) for (h, t, _), s in ranked[: self.top_k]]
+        logger.info("Built %d pairs", len(result))
+        return result
 
     def build_relations(self, chunks: List[ParagraphChunk]) -> List[dict]:
         if not chunks:
@@ -48,7 +55,9 @@ class GraphBuilder:
         candidate_pairs = self._build_pairs(chunks)
         if not candidate_pairs:
             return []
-        return self.relation_builder.build_relations(chunk_dics, candidate_pairs)
+        relations = self.relation_builder.build_relations(chunk_dics, candidate_pairs)
+        logger.info("Built %d relations", len(relations))
+        return relations
 
     def save_relations(self, relations: List[dict]) -> None:
         target_dir = self.base_dir / self.file_id
@@ -56,6 +65,7 @@ class GraphBuilder:
         path = target_dir / "relations.json"
         with path.open("w", encoding="utf-8") as f:
             json.dump(relations, f, ensure_ascii=False, indent=2)
+        logger.info("Relations saved to %s", path)
 
     def build_and_save(self, chunks: List[ParagraphChunk]) -> List[dict]:
         relations = self.build_relations(chunks)

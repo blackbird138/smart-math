@@ -14,6 +14,7 @@ from io import BytesIO
 import shutil
 import json
 import yaml
+from src.utils.logger import get_logger
 from src.loaders.mineru_loader import load_json_by_mineru
 from src.preprocessing.cleaner import clean_documents
 from src.preprocessing.filterer import chunk_and_filter
@@ -25,6 +26,8 @@ from src.graph.relation_builder import RelationBuilder
 from src.datamodel import ParagraphChunk
 from src.solver import MathSolver
 from src.utils.preprocess import sanitize_prompt
+
+logger = get_logger(__name__)
 
 app = FastAPI()
 
@@ -62,11 +65,13 @@ async def update_env(data: EnvUpdate):
     if data.OPENAI_COMPATIBILITY_API_KEY is not None:
         os.environ["OPENAI_COMPATIBILITY_API_KEY"] = data.OPENAI_COMPATIBILITY_API_KEY
         set_key(str(env_file), "OPENAI_COMPATIBILITY_API_KEY", data.OPENAI_COMPATIBILITY_API_KEY)
+    logger.info("Environment variables updated")
     return {"status": "ok"}
 
 @app.post("/ingest")
 async def ingest(file: UploadFile = File(...)):
     """上传并索引单个 PDF 文件"""
+    logger.info("Received file upload: %s", file.filename)
     with NamedTemporaryFile(delete=False, suffix=Path(file.filename).suffix) as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
@@ -88,6 +93,7 @@ async def ingest(file: UploadFile = File(...)):
     emb_mgr.build_or_load(docs, force_rebuild=True)
     retr_mgr = RetrieverManager(emb_mgr, cfg["retriever"])
     file_managers[file_id] = retr_mgr
+    logger.info("Indexed %d chunks for %s", len(docs), file_id)
 
     shutil.move(tmp_path, Path("data") / f"{file_id}.pdf")
     return {"indexed": len(docs), "file_id": file_id}
@@ -96,6 +102,7 @@ async def ingest(file: UploadFile = File(...)):
 @app.get("/search")
 async def search(q: str, file_id: str, top_k: int = 5):
     """根据 file_id 在对应索引中检索"""
+    logger.info("Search query: %s for file %s", q, file_id)
     retr = file_managers.get(file_id)
     if retr is None:
         # 若未找到，则尝试加载已有索引
@@ -103,12 +110,14 @@ async def search(q: str, file_id: str, top_k: int = 5):
         try:
             # 若索引不存在会抛错，由用户自行确认
             emb_mgr.storage.status()
-        except Exception:
+        except Exception as e:
+            logger.error("Load index failed: %s", e)
             raise HTTPException(status_code=404, detail="file_id not found")
         retr = RetrieverManager(emb_mgr, cfg["retriever"])
         file_managers[file_id] = retr
 
     results = retr.retrieve(q, top_k=top_k)
+    logger.info("Found %d results", len(results))
     return {"results": results}
 
 
@@ -122,6 +131,7 @@ async def list_files():
 @app.post("/image_ocr")
 async def image_ocr(file: UploadFile = File(...)):
     """识别上传图片中的数学公式并返回 LaTeX"""
+    logger.info("OCR image uploaded: %s", file.filename)
     with NamedTemporaryFile(delete=False, suffix=Path(file.filename).suffix) as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
@@ -149,12 +159,14 @@ async def image_ocr(file: UploadFile = File(...)):
 @app.post("/build_graph")
 async def build_graph(file_id: str, top_k: int = 5):
     """构建指定文件的关系图并保存"""
+    logger.info("Building graph for %s", file_id)
     retr = file_managers.get(file_id)
     if retr is None:
         emb_mgr = EmbeddingManager(cfg["embedding"], file_id)
         try:
             emb_mgr.storage.status()
-        except Exception:
+        except Exception as e:
+            logger.error("Load index failed: %s", e)
             raise HTTPException(status_code=404, detail="file_id not found")
         retr = RetrieverManager(emb_mgr, cfg["retriever"])
         file_managers[file_id] = retr
@@ -163,6 +175,7 @@ async def build_graph(file_id: str, top_k: int = 5):
     if chunks is None:
         chunks_path = Path("data/relation_store") / file_id / "chunks.json"
         if not chunks_path.exists():
+            logger.error("Chunks not found for %s", file_id)
             raise HTTPException(status_code=404, detail="chunks not found")
         with chunks_path.open("r", encoding="utf-8") as f:
             json_list = json.load(f)
@@ -178,6 +191,7 @@ async def build_graph(file_id: str, top_k: int = 5):
         base_dir="data/relation_store",
     )
     relations = gb.build_and_save(chunks)
+    logger.info("Graph built with %d relations", len(relations))
     return {"relations": relations}
 
 
@@ -192,6 +206,7 @@ async def list_chunks(file_id: str, chunk_type: str | None = None):
     if chunks is None:
         path = Path("data/relation_store") / file_id / "chunks.json"
         if not path.exists():
+            logger.error("Chunks not found for %s", file_id)
             raise HTTPException(status_code=404, detail="chunks not found")
         with path.open("r", encoding="utf-8") as f:
             json_list = json.load(f)
@@ -234,6 +249,7 @@ async def list_related(file_id: str, chunk_id: str):
     if chunks is None:
         path = Path("data/relation_store") / file_id / "chunks.json"
         if not path.exists():
+            logger.error("Chunks not found for %s", file_id)
             raise HTTPException(status_code=404, detail="chunks not found")
         with path.open("r", encoding="utf-8") as f:
             json_list = json.load(f)
@@ -263,6 +279,7 @@ async def get_chunk(file_id: str, chunk_id: str):
     if chunks is None:
         path = Path("data/relation_store") / file_id / "chunks.json"
         if not path.exists():
+            logger.error("Chunks not found for %s", file_id)
             raise HTTPException(status_code=404, detail="chunks not found")
         with path.open("r", encoding="utf-8") as f:
             json_list = json.load(f)
@@ -277,6 +294,7 @@ async def get_chunk(file_id: str, chunk_id: str):
                 "number": c.metadata.get("number", ""),
             }
 
+    logger.error("Chunk %s not found in %s", chunk_id, file_id)
     raise HTTPException(status_code=404, detail="chunk not found")
 
 
@@ -289,11 +307,13 @@ class SolveRequest(BaseModel):
 @app.post("/solve")
 async def solve(req: SolveRequest):
     """调用 LLM 解答数学问题"""
+    logger.info("Solve request for %s", req.file_id)
     retr = file_managers.get(req.file_id)
     docs = file_docs.get(req.file_id)
     if docs is None:
         path = Path("data/relation_store") / req.file_id / "chunks.json"
         if not path.exists():
+            logger.error("Chunks not found for %s", req.file_id)
             raise HTTPException(status_code=404, detail="chunks not found")
         with path.open("r", encoding="utf-8") as f:
             json_list = json.load(f)
@@ -304,23 +324,27 @@ async def solve(req: SolveRequest):
             emb_mgr = EmbeddingManager(cfg["embedding"], req.file_id)
             emb_mgr.storage.status()
             retr = RetrieverManager(emb_mgr, cfg["retriever"])
-        except Exception:
+        except Exception as e:
+            logger.error("Load index failed: %s", e)
             retr = None
         file_managers[req.file_id] = retr
     solver = MathSolver(retr, docs)
     question = sanitize_prompt(req.question)
     answer = solver.solve(question)
+    logger.info("Answer generated")
     return {"answer": answer}
 
 
 @app.post("/solve_stream")
 async def solve_stream(req: SolveRequest):
     """流式返回数学问题的解答"""
+    logger.info("Solve stream request for %s", req.file_id)
     retr = file_managers.get(req.file_id)
     docs = file_docs.get(req.file_id)
     if docs is None:
         path = Path("data/relation_store") / req.file_id / "chunks.json"
         if not path.exists():
+            logger.error("Chunks not found for %s", req.file_id)
             raise HTTPException(status_code=404, detail="chunks not found")
         with path.open("r", encoding="utf-8") as f:
             json_list = json.load(f)
@@ -331,7 +355,8 @@ async def solve_stream(req: SolveRequest):
             emb_mgr = EmbeddingManager(cfg["embedding"], req.file_id)
             emb_mgr.storage.status()
             retr = RetrieverManager(emb_mgr, cfg["retriever"])
-        except Exception:
+        except Exception as e:
+            logger.error("Load index failed: %s", e)
             retr = None
         file_managers[req.file_id] = retr
     solver = MathSolver(retr, docs)
