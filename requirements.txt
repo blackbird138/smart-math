@@ -11,3 +11,6 @@ pytest
 PyYAML
 transformers
 unstructured
+pytesseract
+Pillow
+
