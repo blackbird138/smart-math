@@ -54,13 +54,9 @@ export function linkRefs(
   return html.replace(regex, (match, alias, num) => {
     const type = refAliases[alias.toLowerCase()] || alias.toLowerCase();
     const id = refs[type]?.[num];
-    if (id) {
-      if (id === currentId) {
-        return `<span class="ref-self chip">${match}</span>`;
-      }
-      return `<span class="ref-link chip" data-type="${type}" data-num="${num}" data-id="${id}">${match}</span>`;
-    }
-    return match;
+    if (!id) return match;
+    const classes = ["ref-link", "chip"];
+    return `<span class="${classes.join(" ")}" data-type="${type}" data-num="${num}" data-id="${id}">${match}</span>`;
   });
 }
 

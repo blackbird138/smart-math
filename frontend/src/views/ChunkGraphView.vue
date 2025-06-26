@@ -99,6 +99,7 @@ const chunkTypeItems = [
   "corollary",
   "example",
   "exercise",
+  "proposition",
   "remark",
 ].map((t) => ({ value: t, title: displayChunkType(t) }));
 const chunks = ref<any[]>([]);
