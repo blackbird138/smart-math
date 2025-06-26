@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Set, Tuple
 
 from src.datamodel import ParagraphChunk
 from src.rag.retriever import RetrieverManager
@@ -56,8 +56,20 @@ class GraphBuilder:
         if not candidate_pairs:
             return []
         relations = self.relation_builder.build_relations(chunk_dics, candidate_pairs)
+        relations = self._deduplicate_relations(relations)
         logger.info("Built %d relations", len(relations))
         return relations
+
+    def _deduplicate_relations(self, relations: List[dict]) -> List[dict]:
+        """移除重复的关系对，只保留唯一的 (head, tail, relation_type)"""
+        seen: Set[Tuple[str, str, str]] = set()
+        unique = []
+        for r in relations:
+            key = (r.get("head"), r.get("tail"), r.get("relation_type", ""))
+            if key not in seen:
+                seen.add(key)
+                unique.append(r)
+        return unique
 
     def save_relations(self, relations: List[dict]) -> None:
         target_dir = self.base_dir / self.file_id

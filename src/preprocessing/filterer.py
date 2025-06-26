@@ -51,7 +51,7 @@ sys_msg = BaseMessage.make_assistant_message(
         对该 chunk 执行以下操作：
         1. 判断 page_content 中一个前缀的内容是否与 chunk_type 指定的类型相符（例如 chunk_type="theorem" 时，判断其是否真的是定理类型内容）。
         2. 如果判断为真，且 page_content 没有缺失的内容：
-           a. 将 `content` 置为符合要求的那个 page_content 的前缀，一定要保证内容的完整，只要前后两段后段是前端的补充说明就要放在一起。
+           a. 将 `content` 置为符合要求的那个 page_content 的前缀，一定要保证内容的完整，只要前后两段后段是前端的补充说明就要放在一起，证明部分不用算入。
            b. 讲 `summary` 置为该 chunk 内容的一句话（一个短词）总结。
            c. 将 `state_code` 置为 "001"。
            d. 若 chunk 标题中包含编号（如 "定理 4.1.3"），提取编号（如 "4.1.3"）填入 `number` 字段；否则 `number` 置为空字符串。
@@ -62,6 +62,10 @@ sys_msg = BaseMessage.make_assistant_message(
            a. 将 `content` 和 `summary` 置为空字符串。
            b. 将 `state_code` 置为 "003"。
         最终输出一个 JSON 对象。
+        
+        例子：
+        输入: {"chunk_type":"definition","page_content":["定义4.3.4(矩阵乘法)矩阵乘法是按以下方式定义的映射","$$\n\\begin{array} { r l } { \\mathrm { M } _ { m \\times n } ( F ) \\times \\mathrm { M } _ { n \\times r } ( F ) \\longrightarrow \\mathrm { M } _ { m \\times r } ( F ) } & { { } } \\\\ { ( A , B ) \\longmapsto } & { { } A B ; } \\end{array}\n$$","若 $A = ( a _ { i j } ) _ { \\underset { 1 \\leq j \\leq n } { 1 \\leq i \\leq m } } , B = ( b _ { j k } ) _ { \\underset { 1 \\leq k \\leq r } { 1 \\leq j \\leq n } }$ ，则 $A B = ( c _ { i k } ) _ { 1 \\leq i \\leq m }$ ，其中1≤k≤r","$$\nc _ { i k } : = \\sum _ { j = 1 } ^ { n } a _ { i j } b _ { j k } = { \\left( \\begin{array} { l l l } { \\ a _ { i 1 } } & { \\cdots } & { a _ { i n } } \\\\ & & { { \\Biggl | } { \\frac { \\# } { \\# } } \\ i \\ { \\bar { \\mathbb { T } } } } \\end{array} \\right) } { \\left( \\begin{array} { l } { \\ b _ { 1 k } } \\\\ { \\ \\vdots } \\\\ { \\ b _ { n k } } \\end{array} \\right) }\n$$"]}
+        输出: {"state_code":"001","content":"定义4.3.4(矩阵乘法)矩阵乘法是按以下方式定义的映射$$ \\begin{array} { r l } { \\mathrm { M } _ { m \\times n } ( F ) \\times \\mathrm { M } _ { n \\times r } ( F ) \\longrightarrow \\mathrm { M } _ { m \\times r } ( F ) } & { { } } \\\\ { ( A , B ) \\longmapsto } & { { } A B ; } \\end{array} $$若 $A = ( a _ { i j } ) _ { \\underset { 1 \\leq j \\leq n } { 1 \\leq i \\leq m } } , B = ( b _ { j k } ) _ { \\underset { 1 \\leq k \\leq r } { 1 \\leq j \\leq n } }$ ，则 $A B = ( c _ { i k } ) _ { 1 \\leq i \\leq m }$ ，其中1≤k≤r$$ c _ { i k } : = \\sum _ { j = 1 } ^ { n } a _ { i j } b _ { j k } = { \\left( \\begin{array} { l l l } { \\ a _ { i 1 } } & { \\cdots } & { a _ { i n } } \\\\ & & { { \\Biggl | } { \\frac { \\# } { \\# } } \\ i \\ { \\bar { \\mathbb { T } } } } \\end{array} \\right) } { \\left( \\begin{array} { l } { \\ b _ { 1 k } } \\\\ { \\ \\vdots } \\\\ { \\ b _ { n k } } \\end{array} \\right) } $$","summary":"矩阵乘法","number":"4.3.4"}
         """
     ),
 )
@@ -124,7 +128,6 @@ def llm_call(chunk: Dict[str, Any]):
     request_cfg["response_format"] = response_format
     request_cfg.pop("stream", None)
 
-    @backoff.on_exception(backoff.expo, Exception, max_tries=3)
     def _step():
         rsp = model._client.chat.completions.create(
             messages=messages,
@@ -133,7 +136,18 @@ def llm_call(chunk: Dict[str, Any]):
         )
         return rsp.choices[0].message.content
 
-    return json.loads(_step())  # ⇐ 保证返回 python 对象
+    for _ in range(3):
+        try:
+            return json.loads(_step())  # ⇐ 保证返回 python 对象
+        except json.JSONDecodeError:
+            continue
+    # 连续多次解析失败，返回空结果以避免中断流程
+    return {
+        "state_code": "003",
+        "content": "",
+        "summary": "",
+        "number": "",
+    }
 
 
 def filter_and_convert(

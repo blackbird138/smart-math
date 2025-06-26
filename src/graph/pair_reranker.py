@@ -16,6 +16,6 @@ class PairReranker:
             else:
                 a, b = pair, ""
             score = self.remote.rerank(a, [b])[0]
-            scores.append(score)
+            scores.append(score["relevance_score"])
 
         return scores
