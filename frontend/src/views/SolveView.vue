@@ -68,14 +68,24 @@ function renderMarkdown(text: string | undefined | null, id = ''): string {
 async function solve() {
   if (!question.value.trim() || !selected.value) return
   loading.value = true
+  answer.value = ''
   try {
-    const res = await fetch(`${API_BASE}/solve`, {
+    const res = await fetch(`${API_BASE}/solve_stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ file_id: selected.value, question: question.value })
     })
-    const data = await res.json()
-    answer.value = data.answer || ''
+    const reader = res.body?.getReader()
+    const decoder = new TextDecoder()
+    if (!reader) throw new Error('no stream')
+    let done = false
+    while (!done) {
+      const { value, done: doneReading } = await reader.read()
+      done = doneReading
+      if (value) {
+        answer.value += decoder.decode(value, { stream: !doneReading })
+      }
+    }
     await loadRefMap()
   } catch (err) {
     console.error(err)
