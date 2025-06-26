@@ -24,7 +24,7 @@ from src.graph import GraphBuilder
 from src.graph.pair_reranker import PairReranker
 from src.graph.relation_builder import RelationBuilder
 from src.datamodel import ParagraphChunk
-from src.solver import MathSolver
+from src.solver import MathSolver, ConversationMemory
 from src.utils.preprocess import sanitize_prompt
 
 logger = get_logger(__name__)
@@ -50,6 +50,7 @@ with open(BASE_DIR / "config" / "agent_config.yaml", "r", encoding="utf-8") as f
 # 按文件缓存对应的索引管理器及切片内容
 file_managers: dict[str, RetrieverManager] = {}
 file_docs: dict[str, list[ParagraphChunk]] = {}
+file_memories: dict[str, ConversationMemory] = {}
 
 class EnvUpdate(BaseModel):
     SILICONFLOW_API_KEY: str | None = None
@@ -81,6 +82,7 @@ async def ingest(file: UploadFile = File(...)):
     docs = clean_documents(docs)
     docs = chunk_and_filter(docs)
     file_docs[file_id] = docs
+    file_memories[file_id] = ConversationMemory()
 
     # 保存切片以便后续构建关系图
     save_dir = Path("data/relation_store") / file_id
@@ -328,7 +330,11 @@ async def solve(req: SolveRequest):
             logger.error("Load index failed: %s", e)
             retr = None
         file_managers[req.file_id] = retr
-    solver = MathSolver(retr, docs)
+    memory = file_memories.get(req.file_id)
+    if memory is None:
+        memory = ConversationMemory()
+        file_memories[req.file_id] = memory
+    solver = MathSolver(retr, docs, memory)
     question = sanitize_prompt(req.question)
     answer = solver.solve(question)
     logger.info("Answer generated")
@@ -359,7 +365,11 @@ async def solve_stream(req: SolveRequest):
             logger.error("Load index failed: %s", e)
             retr = None
         file_managers[req.file_id] = retr
-    solver = MathSolver(retr, docs)
+    memory = file_memories.get(req.file_id)
+    if memory is None:
+        memory = ConversationMemory()
+        file_memories[req.file_id] = memory
+    solver = MathSolver(retr, docs, memory)
     question = sanitize_prompt(req.question)
     async def gen():
         for chunk in solver.stream_solve(question):

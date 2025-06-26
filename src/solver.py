@@ -8,7 +8,7 @@ import yaml
 from camel.agents import ChatAgent
 from camel.models import ModelFactory
 from camel.messages import BaseMessage
-from camel.types import ModelPlatformType
+from camel.types import ModelPlatformType, RoleType
 
 from src.utils.logger import get_logger
 
@@ -50,10 +50,43 @@ _system_msg = BaseMessage.make_assistant_message(
 logger = get_logger(__name__)
 
 
+class ConversationMemory:
+    """维护最近若干轮对话的简单记忆."""
+
+    def __init__(self, max_rounds: int = 3) -> None:
+        self.max_rounds = max_rounds
+        self.history: List[BaseMessage] = []
+
+    def add(self, role: str, content: str) -> None:
+        if role == "user":
+            msg = BaseMessage.make_user_message("user", content)
+        else:
+            msg = BaseMessage.make_assistant_message("assistant", content)
+        self.history.append(msg)
+        limit = self.max_rounds * 2
+        if len(self.history) > limit:
+            self.history = self.history[-limit:]
+
+    def to_messages(self) -> List[Dict]:
+        msgs: List[Dict] = []
+        for m in self.history:
+            if m.role_type == RoleType.USER:
+                msgs.append(m.to_openai_user_message())
+            else:
+                msgs.append(m.to_openai_assistant_message())
+        return msgs
+
+    def clear(self) -> None:
+        self.history.clear()
+
+
 class MathSolver:
     def __init__(
-        self, retriever: Optional[RetrieverManager], docs: List[ParagraphChunk]
-    ):
+        self,
+        retriever: Optional[RetrieverManager],
+        docs: List[ParagraphChunk],
+        memory: Optional[ConversationMemory] = None,
+    ) -> None:
         self.retriever = retriever
         self.docs = docs
         self.docs_dict = {}
@@ -64,6 +97,7 @@ class MathSolver:
             model=_model,
             output_language="中文",
         )
+        self.memory = memory or ConversationMemory()
         logger.info("MathSolver initialized with %d docs", len(self.docs))
 
     def search_chunks(self, query: str, top_k: int = 10) -> List[str]:
@@ -100,8 +134,7 @@ class MathSolver:
         return pattern.sub(repl, text)
 
     def solve(self, question: str) -> str:
-        """结合检索结果回答问题并校验引用."""
-        # 调用检索获取相关词条列表
+        """结合检索结果与历史对话回答问题并校验引用."""
         logger.info("Solving question via LLM")
         chunk_ids = self.search_chunks(question, top_k=10)
         context_parts = []
@@ -120,14 +153,24 @@ class MathSolver:
                 context_parts
             )
 
-        user_msg = BaseMessage.make_user_message("user", prompt)
-        rsp = self.agent.step(user_msg)
-        answer = self._validate_refs(rsp.msgs[0].content)
+        messages = [_system_msg.to_openai_assistant_message()]
+        messages.extend(self.memory.to_messages())
+        messages.append({"role": "user", "content": prompt})
+
+        req_cfg = _model.model_config_dict.copy()
+        req_cfg.pop("stream", None)
+
+        rsp = _model._client.chat.completions.create(
+            messages=messages, model=_model.model_type, **req_cfg
+        )
+        answer = self._validate_refs(rsp.choices[0].message.content)
+        self.memory.add("user", question)
+        self.memory.add("assistant", answer)
         logger.info("LLM answered: %s", answer)
         return answer
 
     def stream_solve(self, question: str):
-        """以流式方式返回解答过程."""
+        """以流式方式返回解答过程, 会利用历史对话."""
         logger.info("Streaming solution via LLM")
         chunk_ids = self.search_chunks(question, top_k=10)
         context_parts = []
@@ -146,10 +189,9 @@ class MathSolver:
                 context_parts
             )
 
-        messages = [
-            _system_msg.to_openai_assistant_message(),
-            {"role": "user", "content": prompt},
-        ]
+        messages = [_system_msg.to_openai_assistant_message()]
+        messages.extend(self.memory.to_messages())
+        messages.append({"role": "user", "content": prompt})
 
         req_cfg = _model.model_config_dict.copy()
         req_cfg["stream"] = True
@@ -168,4 +210,6 @@ class MathSolver:
         final = self._validate_refs(acc)
         if final != acc:
             yield "\n" + final
+        self.memory.add("user", question)
+        self.memory.add("assistant", final)
         logger.info("LLM streaming completed")
