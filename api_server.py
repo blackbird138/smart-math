@@ -8,6 +8,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from tempfile import NamedTemporaryFile
 from pathlib import Path
+from PIL import Image
+import pytesseract
 import shutil
 import json
 import yaml
@@ -113,6 +115,21 @@ async def list_files():
     """返回 data 目录下已上传的文件列表"""
     ids = [p.stem for p in Path("data").glob("*.pdf")]
     return {"files": ids}
+
+
+@app.post("/image_ocr")
+async def image_ocr(file: UploadFile = File(...)):
+    """识别上传图片中的数学公式并返回 LaTeX"""
+    with NamedTemporaryFile(delete=False, suffix=Path(file.filename).suffix) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+    try:
+        img = Image.open(tmp_path)
+        text = pytesseract.image_to_string(img, config="--psm 6")
+        latex = f"${text.strip()}$"
+        return {"latex": latex}
+    finally:
+        os.remove(tmp_path)
 
 
 @app.post("/build_graph")

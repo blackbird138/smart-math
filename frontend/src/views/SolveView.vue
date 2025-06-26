@@ -10,16 +10,33 @@
         />
       </v-col>
       <v-col cols="12" md="6">
-        <v-text-field
+        <v-textarea
           v-model="question"
           label="输入题目"
           density="comfortable"
+          auto-grow
+          rows="4"
           @keyup.enter="solve"
         />
       </v-col>
       <v-col cols="12" md="2">
         <v-btn color="primary" class="mt-2 mt-md-0" @click="solve" :loading="loading">
           解答
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-row class="align-center mt-2">
+      <v-col cols="12" md="8">
+        <v-file-input
+          v-model="imageFile"
+          label="上传图片识别"
+          accept="image/*"
+          density="comfortable"
+        />
+      </v-col>
+      <v-col cols="12" md="4">
+        <v-btn color="primary" class="mt-2 mt-md-0" @click="ocrImage" :disabled="!imageFile">
+          图片OCR
         </v-btn>
       </v-col>
     </v-row>
@@ -51,6 +68,7 @@ const loading = ref(false)
 const files = ref<string[]>([])
 const selected = ref('')
 const refMap = useRefMapStore()
+const imageFile = ref<File | null>(null)
 
 const dialog = ref(false)
 const refContent = ref('')
@@ -173,6 +191,22 @@ onMounted(loadFiles)
 watch(selected, () => {
   loadRefMap()
 })
+
+async function ocrImage() {
+  if (!imageFile.value) return
+  const formData = new FormData()
+  formData.append('file', imageFile.value)
+  try {
+    const res = await fetch(`${API_BASE}/image_ocr`, {
+      method: 'POST',
+      body: formData
+    })
+    const data = await res.json()
+    if (data.latex) question.value = data.latex
+  } catch (err) {
+    console.error(err)
+  }
+}
 </script>
 
 <style scoped>
