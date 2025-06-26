@@ -3179,7 +3179,7 @@ const defaultOptions = {
     kind: OptionKind.API
   },
   standardFontDataUrl: {
-    value: "../web/standard_fonts/",
+    value: "../standard_fonts/",
     kind: OptionKind.API
   },
   verbosity: {

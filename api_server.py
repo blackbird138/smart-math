@@ -378,5 +378,3 @@ async def solve_stream(req: SolveRequest):
 
     headers = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
     return StreamingResponse(gen(), media_type="text/plain; charset=utf-8", headers=headers)
-
-    return StreamingResponse(gen(), media_type="text/plain")
