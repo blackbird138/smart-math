@@ -79,6 +79,7 @@ function renderMarkdown(text: string | undefined | null, id = ''): string {
   const raw = md.render(text)
   let sanitized = DOMPurify.sanitize(raw)
   sanitized = replaceRefTags(sanitized, refMap.refMap, refMap.idMap)
+  sanitized = DOMPurify.sanitize(sanitized)
   return linkRefs(sanitized, refMap.refMap, id)
 }
 

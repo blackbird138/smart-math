@@ -130,6 +130,7 @@ function renderMarkdown(text: string | undefined | null, id = ""): string {
   const rawHtml = md.render(txt);
   let sanitized = DOMPurify.sanitize(rawHtml);
   sanitized = replaceRefTags(sanitized, refMap.refMap);
+  sanitized = DOMPurify.sanitize(sanitized);
   return linkRefs(sanitized, refMap.refMap, id);
 }
 
