@@ -40,6 +40,9 @@ Smart Math 是一个面向数学文档解析和问答的实验项目。项目通
 uvicorn api_server:app --reload --port 8001
 ```
 
+## 日志
+所有运行日志会写入项目根目录的 `logs/app.log`，便于排查问题。
+
 ## 运行测试
 ```bash
 cd tests
