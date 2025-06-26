@@ -303,7 +303,6 @@ async def solve_stream(req: SolveRequest):
             retr = None
         file_managers[req.file_id] = retr
     solver = MathSolver(retr, docs)
-
     async def gen():
         for chunk in solver.stream_solve(req.question):
             yield chunk.encode("utf-8")
@@ -311,3 +310,5 @@ async def solve_stream(req: SolveRequest):
 
     headers = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
     return StreamingResponse(gen(), media_type="text/plain; charset=utf-8", headers=headers)
+
+    return StreamingResponse(gen(), media_type="text/plain")
