@@ -1,6 +1,7 @@
 # src/preprocessing/filterer.py
 
 import json, yaml, tiktoken, backoff
+import re
 from dotenv import load_dotenv
 from pathlib import Path
 from textwrap import dedent
@@ -100,6 +101,22 @@ def _tok(s: str) -> int:
     return len(enc.encode(s))
 
 
+def normalize_latex_block(text: str) -> str:
+    """确保行间公式 $$...$$ 或 \[...\] 前后带换行"""
+    pattern = re.compile(r"(\$\$.*?\$\$|\\\[.*?\\\])", re.DOTALL)
+
+    def repl(match: re.Match) -> str:
+        block = match.group(0)
+        if block.startswith("$$"):
+            inner = block[2:-2].strip()
+            return f"\n$$\n{inner}\n$$\n"
+        else:
+            inner = block[2:-2].strip()
+            return f"\n\\[\n{inner}\n\\]\n"
+
+    return pattern.sub(repl, text)
+
+
 def build_batches(items, limit=CTX_LIMIT - SAFETY):
     cur, cur_tok, out = [], 0, []
     for it in items:
@@ -163,7 +180,8 @@ def filter_and_convert(chunks: List[ParagraphChunk]) -> (List[ParagraphChunk], L
     results, faild_chunks = [], []
     for item, chunk in zip(candidate_list, chunks):
         if item["state_code"] == "001":
-            new_chunk = ParagraphChunk(id=chunk.id, page_content=item["content"], metadata=chunk.metadata)
+            content = normalize_latex_block(item["content"])
+            new_chunk = ParagraphChunk(id=chunk.id, page_content=content, metadata=chunk.metadata)
             new_chunk.metadata["summary"] = item["summary"]
             new_chunk.metadata["number"] = item.get("number", "")
             print("----------------------------------------------")
