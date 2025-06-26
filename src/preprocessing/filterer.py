@@ -27,16 +27,13 @@ with open(CONFIG_DIR / "agent_config.yaml", "r", encoding="utf-8") as f:
 
 # 2. 定义 Pydantic 模型
 FILTER_SCHEMA = {
-    "type": "array",
-    "items": {
-        "type": "object",
-        "required": ["state_code", "content", "summary", "number"],
-        "properties": {
-            "state_code": {"type": "string"},
-            "content": {"type": "string"},
-            "summary": {"type": "string"},
-            "number": {"type": "string"},
-        },
+    "type": "object",
+    "required": ["state_code", "content", "summary", "number"],
+    "properties": {
+        "state_code": {"type": "string"},
+        "content": {"type": "string"},
+        "summary": {"type": "string"},
+        "number": {"type": "string"},
     },
 }
 
@@ -46,12 +43,12 @@ sys_msg = BaseMessage.make_assistant_message(
     content=dedent(
         """
         你是一个数学文档处理助手。
-        输入：一个 JSON 格式的 chunk 列表，每个 chunk 都包含：
+        输入：一个 JSON 格式的 chunk，对象包含：
           - chunk_type: 指定的类型（definition/theorem/lemma/exercise等）
           - page_content: 一个 List，包含以段落划分原始文本内容，可能有缺失或多余的内容，多余的内容一定是 List 的一个后缀。
 
         任务：
-        对列表中的每个 chunk 按照输入顺序依次执行以下操作：
+        对该 chunk 执行以下操作：
         1. 判断 page_content 中一个前缀的内容是否与 chunk_type 指定的类型相符（例如 chunk_type="theorem" 时，判断其是否真的是定理类型内容）。
         2. 如果判断为真，且 page_content 没有缺失的内容：
            a. 将 `content` 置为符合要求的那个 page_content 的前缀，一定要保证内容的完整，只要前后两段后段是前端的补充说明就要放在一起。
@@ -64,7 +61,7 @@ sys_msg = BaseMessage.make_assistant_message(
         4. 如果判断为假：
            a. 将 `content` 和 `summary` 置为空字符串。
            b. 将 `state_code` 置为 "003"。
-        最终输出一个 JSON 列表。
+        最终输出一个 JSON 对象。
         """
     ),
 )
@@ -97,10 +94,6 @@ agent = ChatAgent(
 
 
 # 5. 批量过滤与转换函数
-def _tok(s: str) -> int:
-    return len(enc.encode(s))
-
-
 def normalize_latex_block(text: str) -> str:
     """确保行间公式 $$...$$ 或 \[...\] 前后带换行"""
     pattern = re.compile(r"(\$\$.*?\$\$|\\\[.*?\\\])", re.DOTALL)
@@ -117,22 +110,8 @@ def normalize_latex_block(text: str) -> str:
     return pattern.sub(repl, text)
 
 
-def build_batches(items, limit=CTX_LIMIT - SAFETY):
-    cur, cur_tok, out = [], 0, []
-    for it in items:
-        t = _tok(json.dumps(it, ensure_ascii=False))
-        if cur and cur_tok + t > limit:
-            out.append(cur)
-            cur, cur_tok = [], 0
-        cur.append(it)
-        cur_tok += t
-    if cur:
-        out.append(cur)
-    return out  # [[dict, ...], [dict, ...], ...]
-
-
-def llm_call(batch):
-    prompt = "\n\n输入数据：\n" + json.dumps(batch, ensure_ascii=False)
+def llm_call(chunk: Dict[str, Any]):
+    prompt = "\n\n输入数据：\n" + json.dumps(chunk, ensure_ascii=False)
     user = BaseMessage.make_user_message("chunk_provider", prompt)
 
     messages = [
@@ -178,15 +157,15 @@ def filter_and_convert(
                 }
             )
 
-        batches = build_batches(pure_chunks)  # 先按 token 切批
         candidate_list = []
-        for batch in batches:
-            candidate_list.extend(llm_call(batch))
+        for item in pure_chunks:
+            candidate_list.append(llm_call(item))
 
-        try:
-            validate(candidate_list, FILTER_SCHEMA)
-        except ValidationError:
-            print("Schema 校验失败")
+        for cand in candidate_list:
+            try:
+                validate(cand, FILTER_SCHEMA)
+            except ValidationError:
+                print("Schema 校验失败")
 
         next_round = []
         for item, chunk in zip(candidate_list, remaining):
