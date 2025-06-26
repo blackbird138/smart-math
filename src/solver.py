@@ -117,3 +117,45 @@ class MathSolver:
         answer = self._validate_refs(rsp.msgs[0].content)
         print(answer)
         return answer
+
+    def stream_solve(self, question: str):
+        """以流式方式返回解答过程."""
+        chunk_ids = self.search_chunks(question, top_k=10)
+        context_parts = []
+        for idx, cid in enumerate(chunk_ids, 1):
+            doc = self.docs_dict.get(cid)
+            if not doc:
+                continue
+            content = doc.page_content
+            if isinstance(content, list):
+                content = " ".join(content)
+            context_parts.append(f"{idx}. {content} [REF:{cid}]")
+
+        prompt = question
+        if context_parts:
+            prompt += "\n\n以下词条供参考，请在需要时引用：\n" + "\n".join(
+                context_parts
+            )
+
+        messages = [
+            _system_msg.to_openai_assistant_message(),
+            {"role": "user", "content": prompt},
+        ]
+
+        req_cfg = _model.model_config_dict.copy()
+        req_cfg["stream"] = True
+
+        stream = _model._client.chat.completions.create(
+            messages=messages, model=_model.model_type, **req_cfg
+        )
+
+        acc = ""
+        for chunk in stream:
+            delta = chunk.choices[0].delta.content
+            if delta:
+                acc += delta
+                yield delta
+
+        final = self._validate_refs(acc)
+        if final != acc:
+            yield "\n" + final
