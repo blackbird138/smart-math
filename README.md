@@ -7,6 +7,7 @@ FastAPI 服务、前端界面及一套数据处理流程。
 更多细节请查看 [架构文档](docs/architecture.md)。
 
 ## 项目结构
+- `docs/`：架构文档，以及可供测试的文档。
 - `mineru_service/`：PDF 解析服务，提供 `/parse` 接口，可通过 Dockerfile 构建
 - `src/`：清洗、切片、向量化及解题相关核心代码
 - `frontend/`：基于 Vue3 + TypeScript 的前端工程
