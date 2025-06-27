@@ -30,7 +30,14 @@ FastAPI 服务、前端界面及一套数据处理流程。
    ```
 
 ## 快速开始
-在根目录下运行即可启动项目
+在根目录下执行
+```bash
+   docker compose up -d
+   uvicorn api_server:app --reload --port 8001
+   cd frontend
+   npm run dev
+   ```
+或也可通过脚本快速启动项目
    ```bash
    python launcher.py
    ```

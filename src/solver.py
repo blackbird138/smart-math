@@ -43,6 +43,7 @@ _system_msg = BaseMessage.make_assistant_message(
         有如下要求：
         1. 输出使用 markdown 可直接渲染解析的格式，LaTeX 公式要放在 $$ 中。
         2. 仅可引用用户提供的词条，不要编造文档库中不存在的引用。
+        3. [REF] 不可放在 LaTeX 公式的 $$ 内部。
         """
     ),
 )
