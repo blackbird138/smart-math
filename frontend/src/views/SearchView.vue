@@ -72,12 +72,22 @@
             <h4>相关词条</h4>
             <v-progress-circular indeterminate v-if="related[item.metadata.chunk_id]?.loading" />
             <v-expansion-panels v-else multiple>
-              <v-expansion-panel v-for="r in related[item.metadata.chunk_id]?.items" :key="r.id">
+              <v-expansion-panel
+                v-for="r in related[item.metadata.chunk_id]?.items"
+                :key="r.id"
+              >
                 <template #title>
-                  <strong>{{ r.relation }}: {{ r.summary || r.id }}</strong>
+                  <strong>
+                    {{ r.relation }}:
+                    {{ displayChunkType(r.chunk_type) }}
+                    <template v-if="r.number"> {{ r.number }}</template>
+                    {{ r.summary ? ' ' + r.summary : '' }}
+                  </strong>
                 </template>
                 <template #text>
-                  <div v-html="renderMarkdown(r.relation_summary, r.id)" />
+                  <div
+                    v-html="renderMarkdown(`[REF:${r.id}] ${r.relation_summary}`, r.id)"
+                  />
                 </template>
               </v-expansion-panel>
             </v-expansion-panels>
