@@ -14,24 +14,25 @@ FastAPI 服务、前端界面及一套数据处理流程。
 - `config/`：模型与 RAG 配置
 - `tests/`：Pytest 单元测试
 
-## 快速开始
+## 环境配置
 1. 安装 Python 3.11，并安装依赖
    ```bash
    pip install -r requirements.txt
    ```
-2. 启动 Mineru 解析服务
+2. 构建 Mineru 解析服务
    ```bash
-   docker compose up -d
+   docker-compose build
    ```
-3. 启动 API 服务
-   ```bash
-   uvicorn api_server:app --reload --port 8001
-   ```
-4. 启动前端
+3. 构建前端
    ```bash
    cd frontend
    npm install
-   npm run dev
+   ```
+
+## 快速开始
+在根目录下运行即可启动项目
+   ```bash
+   python launcher.py
    ```
 
 ## 技术文档

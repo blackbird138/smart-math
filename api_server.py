@@ -21,7 +21,6 @@ from src.preprocessing.filterer import chunk_and_filter
 from src.rag.embedding import EmbeddingManager
 from src.rag.retriever import RetrieverManager
 from src.graph import GraphBuilder
-from src.graph.pair_reranker import PairReranker
 from src.graph.relation_builder import RelationBuilder
 from src.datamodel import ParagraphChunk
 from src.solver import MathSolver, ConversationMemory
@@ -186,7 +185,6 @@ async def build_graph(file_id: str, top_k: int = 5):
 
     gb = GraphBuilder(
         retr,
-        PairReranker(),
         RelationBuilder(agent_cfg["PROCESS_MODEL"]),
         file_id=file_id,
         top_k=top_k,
@@ -195,7 +193,6 @@ async def build_graph(file_id: str, top_k: int = 5):
     relations = gb.build_and_save(chunks)
     logger.info("Graph built with %d relations", len(relations))
     return {"relations": relations}
-
 
 @app.get("/list_chunks")
 async def list_chunks(file_id: str, chunk_type: str | None = None):

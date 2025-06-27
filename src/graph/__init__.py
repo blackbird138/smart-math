@@ -6,7 +6,6 @@ from typing import List, Dict, Set, Tuple
 
 from src.datamodel import ParagraphChunk
 from src.rag.retriever import RetrieverManager
-from .pair_reranker import PairReranker
 from .relation_builder import RelationBuilder
 from src.utils.logger import get_logger
 
@@ -16,11 +15,10 @@ logger = get_logger(__name__)
 class GraphBuilder:
     """构建并保存数学文本之间的关系图."""
 
-    def __init__(self, retriever: RetrieverManager, reranker: PairReranker,
+    def __init__(self, retriever: RetrieverManager,
                  relation_builder: RelationBuilder, file_id: str, top_k: int = 5,
                  base_dir: str = "data") -> None:
         self.retriever = retriever
-        self.reranker = reranker
         self.relation_builder = relation_builder
         self.top_k = top_k
         self.base_dir = Path(base_dir)
@@ -33,17 +31,8 @@ class GraphBuilder:
         if not pairs:
             return []
 
-        # 使用摘要文本进行 rerank
-        summaries: Dict[str, str] = {}
-        for c in chunks:
-            summaries[c.id] = c.metadata.get("summary", c.page_content if isinstance(c.page_content, str) else "\n".join(c.page_content))
-
-        pair_inputs = [f"{summaries[h]}\n{summaries[t]}" for h, t, _ in pairs]
-        scores = self.reranker.score_pairs(pair_inputs)
-        ranked = sorted(zip(pairs, scores), key=lambda x: x[1], reverse=True)
-        result = [(h, t, s) for (h, t, _), s in ranked[: self.top_k]]
-        logger.info("Built %d pairs", len(result))
-        return result
+        logger.info("Built %d pairs", len(pairs))
+        return pairs
 
     def build_relations(self, chunks: List[ParagraphChunk]) -> List[dict]:
         if not chunks:
