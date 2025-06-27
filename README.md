@@ -1,53 +1,61 @@
 # Smart Math
 
-Smart Math 是一个面向数学文档解析和问答的实验项目。项目通过 Mineru 服务解析 PDF 内容，使用 RAG（Retrieval Augmented Generation）方式将检索到的文档与 LLM 结合来生成答案。
+Smart Math 致力于自动解析数学 PDF 文档并提供问答能力，结合
+RAG（Retrieval Augmented Generation）技术与大语言模型生成解答。项目内含后端
+FastAPI 服务、前端界面及一套数据处理流程。
 
-更多详情请参见 [架构文档](docs/architecture.md)。
+更多细节请查看 [架构文档](docs/architecture.md)。
 
 ## 项目结构
-- `mineru_service/`：FastAPI 服务，提供 `/parse` 接口解析 PDF，通过 Dockerfile 构建镜像
-- `src/`：数据清洗、文本切片和向量检索的核心代码
-- `frontend/`：基于 Vue 3 + TypeScript 的前端项目
-- `api_server.py`：提供 `/ingest` 和 `/search` 接口的简易 FastAPI 应用
-- `config/`：RAG 及模型依赖的 YAML 配置文件
-- `tests/`：单元测试
+- `mineru_service/`：PDF 解析服务，提供 `/parse` 接口，可通过 Dockerfile 构建
+- `src/`：清洗、切片、向量化及解题相关核心代码
+- `frontend/`：基于 Vue3 + TypeScript 的前端工程
+- `api_server.py`：对外的 API 服务，实现文件索引、检索和解题等接口
+- `config/`：模型与 RAG 配置
+- `tests/`：Pytest 单元测试
 
-## 环境准备
-1. 安装 Python 3.11 以及依赖
+## 快速开始
+1. 安装 Python 3.11，并安装依赖
    ```bash
    pip install -r requirements.txt
    ```
-2. 可选安装用于清洗的附加包
-   ```bash
-   pip install unstructured==0.14.0 transformers
-   ```
-3. 启动 Mineru 服务
+2. 启动 Mineru 解析服务
    ```bash
    docker compose up -d
    ```
-4. 运行前端
+3. 启动 API 服务
+   ```bash
+   uvicorn api_server:app --reload --port 8001
+   ```
+4. 启动前端
    ```bash
    cd frontend
-   npm install  # 安装包含 Vuetify 在内的依赖
+   npm install
    npm run dev
    ```
 
-## 快速使用
-可以以 `test.py` 为例，向本地 Mineru 服务上传 PDF 并获取解析结果。`src/pipeline.py` 中的 `SmartMathPipeline` 执行数据加载、清洗和向量化流程。
+## 技术文档
+### API 文档
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `POST` | `/update_env` | 更新 API Key 等环境变量 |
+| `POST` | `/ingest` | 上传并索引单个 PDF |
+| `GET` | `/search` | 在指定文件索引中检索 |
+| `GET` | `/list_files` | 列出已上传的文件 |
+| `POST` | `/image_ocr` | 图片公式识别为 LaTeX |
+| `POST` | `/build_graph` | 构建指定文件的关系图 |
+| `GET` | `/list_chunks` | 获取文件中所有切片信息 |
+| `GET` | `/list_related` | 查看与某个切片相关的条目 |
+| `GET` | `/get_chunk` | 按 ID 获取切片内容 |
+| `POST` | `/solve` | 根据问题返回答案 |
+| `POST` | `/solve_stream` | 以流式方式返回答案 |
 
-如需通过 HTTP 调用，可启动 `api_server.py`：
-```bash
-uvicorn api_server:app --reload --port 8001
-```
-
-## 日志
-所有运行日志会写入项目根目录的 `logs/app.log`，便于排查问题。
-
-## 运行测试
-```bash
-cd tests
-PYTHONPATH=.. pytest
-```
+### 用户手册
+1. 通过 `/ingest` 上传 PDF，得到 `file_id`
+2. 使用 `/search` 查询相关片段或 `/list_chunks` 查看所有切片
+3. 如需构建关系图，调用 `/build_graph`
+4. 使用 `/solve` 或 `/solve_stream` 提出数学问题，`file_id` 对应上传的文档
+5. 前端页面可直接上传文件并提问，后端 API 统一由 `api_server.py` 提供
 
 ## 版权声明
-本项目基于 MIT 许可证发布，详见 LICENSE 文件。
+本项目基于 MIT 许可证发布，详见 LICENSE。
